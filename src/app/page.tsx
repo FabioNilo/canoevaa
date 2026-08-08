@@ -1,69 +1,74 @@
+import { ChevronDown } from "lucide-react";
 import Image from "next/image";
+import { ButtonLink } from "@/components/PrimaryButton";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+    <>
+      <SiteHeader />
+      <main className="min-h-screen bg-deep">
+        <section className="hero-ocean flex min-h-[calc(100vh-188px)] items-center justify-center bg-cover bg-center px-5 pb-20 pt-32 text-white sm:px-8 lg:px-16">
+          <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
             <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+              src="/brand/ilheus-canoe-vaa-logo.png"
+              alt="Logo ILHÉUS CANOE VA'A"
+              width={128}
+              height={128}
+              priority
+              className="mb-8 h-24 w-24 rounded-full object-cover shadow-2xl shadow-deep/40 sm:h-32 sm:w-32"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+            <h1 className="font-display text-4xl font-bold leading-tight drop-shadow-xl sm:text-5xl lg:text-6xl">
+              Descubra Ilheus de um jeito diferente
+            </h1>
+            <p className="mt-8 max-w-3xl text-lg leading-8 text-white/92 sm:text-xl">
+              Experiencias de canoa havaiana que unem mar, natureza, movimento e boas historias.
+            </p>
+
+            <div className="mt-10 flex w-full max-w-xl flex-col gap-4 sm:flex-row sm:justify-center">
+              <ButtonLink href="/reserva" className="w-full px-10 py-4 text-base sm:w-auto">
+                Quero remar
+              </ButtonLink>
+              <ButtonLink
+                href="/experiencias/por-do-sol"
+                variant="secondary"
+                className="w-full border-2 bg-white/8 px-10 py-4 text-base text-white backdrop-blur sm:w-auto"
+              >
+                Conhecer experiencias
+              </ButtonLink>
+            </div>
+
+            <a href="/reserva" className="mt-16 flex flex-col items-center gap-4 text-white">
+              <span className="font-mono text-xs font-bold uppercase tracking-[0.18em]">
+                Experiencias a partir de R$ 35 por pessoa
+              </span>
+              <ChevronDown size={28} />
+            </a>
+          </div>
+        </section>
+
+        <footer className="bg-deep px-5 py-9 text-white sm:px-10 lg:px-20">
+          <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-7 text-center md:flex-row md:justify-between md:text-left">
+            <div className="flex items-center gap-3">
+              <Image
+                src="/brand/ilheus-canoe-vaa-logo.png"
+                alt="Logo ILHÉUS CANOE VA'A"
+                width={48}
+                height={48}
+                className="h-11 w-11 rounded-full object-cover"
+              />
+              <p className="font-display text-xl font-bold">ILHÉUS CANOE VA&apos;A</p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-6 text-sm text-white/76">
+              <a href="#">Privacidade</a>
+              <a href="#">Termos</a>
+              <a href="#">Cancelamento</a>
+            </div>
+            <p className="text-sm text-white/76">© 2026 ILHÉUS CANOE VA&apos;A. Todos os direitos reservados.</p>
+          </div>
+        </footer>
       </main>
-    </div>
+    </>
   );
 }

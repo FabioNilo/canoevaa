@@ -1,26 +1,78 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f9fb;
+  --foreground: #191c1e;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-deep: #001e40;
+  --color-ocean: #0077be;
+  --color-turquoise: #40e0d0;
+  --color-sand: #f4e4bc;
+  --color-surface: #f7f9fb;
+  --color-card: #ffffff;
+  --color-muted: #43474f;
+  --color-line: #dfe5ea;
+  --color-success: #0e9f6e;
+  --color-warning: #b7791f;
+  --color-danger: #c2410c;
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-montserrat);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(64, 224, 208, 0.16), transparent 28rem),
+    var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.font-display {
+  font-family: var(--font-montserrat), Arial, Helvetica, sans-serif;
+}
+
+.hero-ocean {
+  background-image:
+    linear-gradient(180deg, rgba(0, 30, 64, 0.08), rgba(0, 30, 64, 0.36) 48%, rgba(0, 30, 64, 0.96) 100%),
+    url("https://lh3.googleusercontent.com/aida-public/AB6AXuCu7mfDjLtRuQtnOTHnOvFYcCCSsxi1lzDi0SMCjQ3pPwrOsCT9fnUuT1Vph_P-nQPn9_Il-UzIePsipoimS9fcjmbZHhJdu2DkAO7NDTwM9e2WlExj0I_25J9wwPYbA8ksBYJ0ZWESrWLU48HOzrL43eF5uWmvWcA4U5y5_O1XT3xYSqH7pAt1UHRIOvp6A6vlt6ZVwF2z5Dy7IvUN8x4yJl5BpSDieGtpdeeL4gx6ppbD8EMWfRXC");
+}
+
+.canoe-sunrise {
+  background-image:
+    linear-gradient(180deg, rgba(0, 30, 64, 0.04), rgba(0, 30, 64, 0.82)),
+    url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85");
+}
+
+.canoe-coast {
+  background-image:
+    linear-gradient(180deg, rgba(0, 30, 64, 0.04), rgba(0, 30, 64, 0.86)),
+    url("https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=85");
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 51, 102, 0.08);
+}
+
+.deep-shadow {
+  box-shadow: 0 20px 45px rgba(0, 51, 102, 0.12);
 }
