@@ -5,7 +5,7 @@ type Props = {
 
 export function Stepper({ steps, current }: Props) {
   return (
-    <ol className="grid grid-cols-4 gap-2">
+    <ol className="grid gap-2" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>
       {steps.map((step, index) => {
         const active = index <= current;
 

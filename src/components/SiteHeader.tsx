@@ -1,4 +1,4 @@
-import { CalendarDays, Menu, UserRound } from "lucide-react";
+﻿import { CalendarDays, Menu, UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { ButtonLink } from "./PrimaryButton";
@@ -23,13 +23,16 @@ export function SiteHeader() {
 
         <div className="hidden items-center gap-8 md:flex">
           <Link href="/experiencias/por-do-sol" className="border-b-2 border-turquoise pb-1 text-sm font-bold text-turquoise">
-            Experiencias
+            Experiências
           </Link>
           <Link href="/reserva" className="text-sm font-semibold text-muted hover:text-ocean">
             Como funciona
           </Link>
           <Link href="/associado/login" className="text-sm font-semibold text-muted hover:text-ocean">
-            Area do associado
+           Área do associado
+          </Link>
+          <Link href="/admin" className="text-sm font-semibold text-muted hover:text-ocean">
+            Admin
           </Link>
         </div>
 
@@ -43,7 +46,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-2 md:hidden">
           <Link
             href="/associado/login"
-            aria-label="Area do associado"
+            aria-label="Área do associado"
             className="grid h-10 w-10 place-items-center rounded-full text-deep"
           >
             <UserRound size={21} />
@@ -59,3 +62,5 @@ export function SiteHeader() {
     </header>
   );
 }
+
+

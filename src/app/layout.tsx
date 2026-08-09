@@ -15,7 +15,7 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: "ILHÉUS CANOE VA'A",
-  description: "Experiencias de canoa havaiana em Ilheus, Bahia.",
+  description: "Experiências de canoa havaiana em Ilhéus, Bahia.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

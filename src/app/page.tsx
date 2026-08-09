@@ -1,9 +1,46 @@
+"use client";
+
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { ExperienceCard } from "@/components/ExperienceCard";
 import { ButtonLink } from "@/components/PrimaryButton";
 import { SiteHeader } from "@/components/SiteHeader";
+import type { Experience } from "@/domain/types";
+import { experienceService } from "@/services/experience-service";
 
 export default function Home() {
+  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    experienceService
+      .list()
+      .then((data) => {
+        if (active) {
+          setExperiences(data);
+          setError(null);
+        }
+      })
+      .catch((err: Error) => {
+        if (active) {
+          setError(err.message);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <>
       <SiteHeader />
@@ -20,10 +57,10 @@ export default function Home() {
             />
 
             <h1 className="font-display text-4xl font-bold leading-tight drop-shadow-xl sm:text-5xl lg:text-6xl">
-              Descubra Ilheus de um jeito diferente
+              Descubra Ilhéus de um jeito diferente
             </h1>
             <p className="mt-8 max-w-3xl text-lg leading-8 text-white/92 sm:text-xl">
-              Experiencias de canoa havaiana que unem mar, natureza, movimento e boas historias.
+              Experiências de canoa havaiana que unem mar, natureza, movimento e boas histórias.
             </p>
 
             <div className="mt-10 flex w-full max-w-xl flex-col gap-4 sm:flex-row sm:justify-center">
@@ -35,16 +72,42 @@ export default function Home() {
                 variant="secondary"
                 className="w-full border-2 bg-white/8 px-10 py-4 text-base text-white backdrop-blur sm:w-auto"
               >
-                Conhecer experiencias
+                Conhecer experiências
               </ButtonLink>
             </div>
 
-            <a href="/reserva" className="mt-16 flex flex-col items-center gap-4 text-white">
+            <a href="#experiencias" className="mt-16 flex flex-col items-center gap-4 text-white">
               <span className="font-mono text-xs font-bold uppercase tracking-[0.18em]">
-                Experiencias a partir de R$ 35 por pessoa
+                Experiências a partir de R$ 35 por pessoa
               </span>
               <ChevronDown size={28} />
             </a>
+          </div>
+        </section>
+
+        <section id="experiencias" className="bg-surface px-5 py-16 sm:px-10 lg:px-20">
+          <div className="mx-auto max-w-[1440px]">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-ocean">Experiências</p>
+                <h2 className="mt-2 font-display text-4xl font-bold text-deep">Escolha sua remada</h2>
+              </div>
+              <p className="max-w-xl text-muted">
+                Remadas de canoa havaiana em Ilhéus, Bahia, Brasil. Experiências guiadas para todos os níveis de habilidade, com duração de 1 a 3 horas, incluindo instruções de segurança e equipamentos.
+              </p>
+            </div>
+
+            {loading ? <StateCard text="Carregando experiências..." /> : null}
+            {error ? <StateCard text={error} tone="error" /> : null}
+            {!loading && !error && experiences.length === 0 ? <StateCard text="Nenhuma experiência ativa encontrada." /> : null}
+
+            {!loading && !error && experiences.length > 0 ? (
+              <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                {experiences.map((experience) => (
+                  <ExperienceCard key={experience.id} experience={experience} />
+                ))}
+              </div>
+            ) : null}
           </div>
         </section>
 
@@ -61,14 +124,22 @@ export default function Home() {
               <p className="font-display text-xl font-bold">ILHÉUS CANOE VA&apos;A</p>
             </div>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-white/76">
-              <a href="#">Privacidade</a>
-              <a href="#">Termos</a>
-              <a href="#">Cancelamento</a>
+              <span>Privacidade</span>
+              <span>Termos</span>
+              <span>Cancelamento</span>
             </div>
             <p className="text-sm text-white/76">© 2026 ILHÉUS CANOE VA&apos;A. Todos os direitos reservados.</p>
           </div>
         </footer>
       </main>
     </>
+  );
+}
+
+function StateCard({ text, tone = "neutral" }: { text: string; tone?: "neutral" | "error" }) {
+  return (
+    <div className={`mt-8 rounded-2xl border p-5 ${tone === "error" ? "border-danger/30 bg-danger/10 text-danger" : "border-line bg-white text-muted"}`}>
+      {text}
+    </div>
   );
 }

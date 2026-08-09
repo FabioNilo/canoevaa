@@ -1,7 +1,7 @@
 import { RefreshCcw, ShieldCheck, Waves } from "lucide-react";
-import type { Member } from "@/data/associado";
+import type { MemberDashboard } from "@/domain/types";
 
-export function QuotaCard({ member }: { member: Member }) {
+export function QuotaCard({ dashboard }: { dashboard: MemberDashboard }) {
   return (
     <section className="overflow-hidden rounded-[28px] bg-deep text-white deep-shadow">
       <div className="canoe-sunrise bg-cover bg-center p-6 sm:p-8">
@@ -10,18 +10,18 @@ export function QuotaCard({ member }: { member: Member }) {
         </span>
 
         <div className="mt-8 flex items-center gap-3">
-          {Array.from({ length: member.cotasSemana }).map((_, index) => (
+          {Array.from({ length: dashboard.plan.weeklyQuota }).map((_, index) => (
             <span
               key={index}
-              className={`h-8 w-8 rounded-full ${index < member.cotasDisponiveis ? "bg-turquoise" : "border border-white/60"}`}
+              className={`h-8 w-8 rounded-full ${index < dashboard.quotasAvailable ? "bg-turquoise" : "border border-white/60"}`}
             />
           ))}
         </div>
 
         <div className="mt-6 font-display text-5xl font-bold leading-tight">
-          {member.cotasDisponiveis} de {member.cotasSemana}
+          {dashboard.quotasAvailable} de {dashboard.plan.weeklyQuota}
           <br />
-          disponiveis
+          disponíveis
         </div>
 
         <div className="mt-8 space-y-4 text-lg font-semibold">
@@ -32,7 +32,7 @@ export function QuotaCard({ member }: { member: Member }) {
             <ShieldCheck className="text-sand" /> Nascer do Sol = 2 cotas
           </p>
           <p className="flex items-center gap-3 text-white/82">
-            <RefreshCcw size={20} /> Proxima renovacao: {member.proximaRenovacao}
+            <RefreshCcw size={20} /> Próxima renovação: {dashboard.member.nextRenewalLabel}
           </p>
         </div>
       </div>

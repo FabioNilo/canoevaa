@@ -51,8 +51,8 @@ a {
 
 .hero-ocean {
   background-image:
-    linear-gradient(180deg, rgba(0, 30, 64, 0.08), rgba(0, 30, 64, 0.36) 48%, rgba(0, 30, 64, 0.96) 100%),
-    url("https://lh3.googleusercontent.com/aida-public/AB6AXuCu7mfDjLtRuQtnOTHnOvFYcCCSsxi1lzDi0SMCjQ3pPwrOsCT9fnUuT1Vph_P-nQPn9_Il-UzIePsipoimS9fcjmbZHhJdu2DkAO7NDTwM9e2WlExj0I_25J9wwPYbA8ksBYJ0ZWESrWLU48HOzrL43eF5uWmvWcA4U5y5_O1XT3xYSqH7pAt1UHRIOvp6A6vlt6ZVwF2z5Dy7IvUN8x4yJl5BpSDieGtpdeeL4gx6ppbD8EMWfRXC");
+    linear-gradient(180deg, rgba(0, 30, 64, 0.08), rgba(0, 30, 64, 0.34) 45%, rgba(0, 30, 64, 0.94) 100%),
+    url("/experiences/pedra-ios-hero.png");
 }
 
 .canoe-sunrise {

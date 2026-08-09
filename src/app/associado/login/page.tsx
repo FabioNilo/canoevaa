@@ -1,7 +1,10 @@
+"use client";
+
 import { ArrowLeft, Eye, KeyRound, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { ButtonLink, PrimaryButton } from "@/components/PrimaryButton";
+import { authService } from "@/services/auth-service";
 
 export default function LoginPage() {
   return (
@@ -21,18 +24,18 @@ export default function LoginPage() {
             className="mx-auto h-20 w-20 rounded-full object-cover"
           />
           <h1 className="mt-5 text-center font-display text-3xl font-bold text-deep">ILHÉUS CANOE VA&apos;A</h1>
-          <p className="mt-2 text-center text-muted">Area do Associado</p>
+          <p className="mt-2 text-center text-muted">Área do associado</p>
 
           <form className="mt-8 space-y-4">
             <label className="block">
-              <span className="text-sm font-bold text-deep">Email</span>
+              <span className="text-sm font-bold text-deep">E-mail</span>
               <span className="mt-2 flex h-12 items-center gap-3 rounded-xl border border-line bg-surface px-4">
                 <Mail size={18} className="text-muted" />
                 <input
                   type="email"
                   defaultValue="fabio@nakai.com"
                   className="w-full bg-transparent text-sm outline-none"
-                  aria-label="Email"
+                  aria-label="E-mail"
                 />
               </span>
             </label>
@@ -51,7 +54,7 @@ export default function LoginPage() {
               </span>
             </label>
 
-            <ButtonLink href="/associado" className="w-full">
+            <ButtonLink href="/associado" className="w-full" onClick={() => authService.setCurrentRole("member")}>
               Entrar
             </ButtonLink>
           </form>
