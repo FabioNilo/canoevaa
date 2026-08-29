@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 import type { AdminPermission } from "@/domain/types";
 import { adminRepository } from "@/server/repositories";
+import { requireAdminResponse } from "@/server/session";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const unauthorized = await requireAdminResponse();
+
+  if (unauthorized) {
+    return NextResponse.json(unauthorized, { status: 401 });
+  }
+
   const { id } = await params;
   const body = (await request.json()) as { permissions?: Partial<Record<AdminPermission, boolean>> };
 
@@ -13,6 +20,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     );
   }
 
-  const response = adminRepository.updateUserPermissions(id, body.permissions);
+  const response = await adminRepository.updateUserPermissions(id, body.permissions);
   return NextResponse.json(response, { status: response.error ? 404 : 200 });
 }

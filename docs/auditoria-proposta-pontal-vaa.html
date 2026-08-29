@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Auditoria Técnica e Estrutura de Proposta Comercial - Pontal VA'A</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 18mm 16mm;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: #142033;
+        background: #ffffff;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 11px;
+        line-height: 1.45;
+      }
+
+      h1,
+      h2,
+      h3 {
+        color: #00264d;
+        line-height: 1.15;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 32px;
+        letter-spacing: -0.02em;
+      }
+
+      h2 {
+        border-bottom: 2px solid #d9eef2;
+        font-size: 19px;
+        margin-top: 24px;
+        padding-bottom: 6px;
+      }
+
+      h3 {
+        font-size: 14px;
+        margin-top: 16px;
+      }
+
+      p {
+        margin: 7px 0;
+      }
+
+      ul {
+        margin: 7px 0 7px 18px;
+        padding: 0;
+      }
+
+      li {
+        margin: 3px 0;
+      }
+
+      table {
+        border-collapse: collapse;
+        margin: 10px 0 16px;
+        width: 100%;
+      }
+
+      th,
+      td {
+        border: 1px solid #d9e3ea;
+        padding: 6px;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eaf7fa;
+        color: #00264d;
+        font-weight: 700;
+      }
+
+      .cover {
+        background: linear-gradient(135deg, #00264d, #0077be);
+        border-radius: 18px;
+        color: #ffffff;
+        min-height: 250px;
+        padding: 34px;
+      }
+
+      .cover h1,
+      .cover h2,
+      .cover p {
+        color: #ffffff;
+      }
+
+      .cover h2 {
+        border: 0;
+        font-size: 16px;
+        font-weight: 400;
+        margin-top: 12px;
+        opacity: 0.9;
+        padding: 0;
+      }
+
+      .meta {
+        margin-top: 44px;
+        opacity: 0.9;
+      }
+
+      .badge {
+        background: #d9f7f4;
+        border-radius: 999px;
+        color: #003b5c;
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        margin: 3px 4px 3px 0;
+        padding: 4px 8px;
+        text-transform: uppercase;
+      }
+
+      .grid {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(3, 1fr);
+        margin: 12px 0;
+      }
+
+      .card {
+        border: 1px solid #d9e3ea;
+        border-radius: 12px;
+        padding: 12px;
+      }
+
+      .metric {
+        color: #0077be;
+        display: block;
+        font-size: 22px;
+        font-weight: 800;
+      }
+
+      .status-ok {
+        color: #0e7a4f;
+        font-weight: 700;
+      }
+
+      .status-partial {
+        color: #996a00;
+        font-weight: 700;
+      }
+
+      .status-ui {
+        color: #b45309;
+        font-weight: 700;
+      }
+
+      .status-no {
+        color: #b42318;
+        font-weight: 700;
+      }
+
+      .status-out {
+        color: #1d4ed8;
+        font-weight: 700;
+      }
+
+      .page-break {
+        break-before: page;
+      }
+
+      .small {
+        color: #536171;
+        font-size: 10px;
+      }
+
+      .note {
+        background: #f6fbfc;
+        border-left: 4px solid #40e0d0;
+        border-radius: 8px;
+        margin: 12px 0;
+        padding: 10px 12px;
+      }
+
+      .warning {
+        background: #fff7ed;
+        border-left: 4px solid #f59e0b;
+      }
+
+      .danger {
+        background: #fff1f0;
+        border-left: 4px solid #ef4444;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="cover">
+      <h1>Auditoria Técnica e Estrutura de Proposta Comercial</h1>
+      <h2>Projeto Pontal VA'A - plataforma web para agendamento, pagamento, cancelamento e gestão operacional</h2>
+      <div class="meta">
+        <p><strong>Documento:</strong> diagnóstico técnico, requisitos pendentes e estrutura de proposta sem valores monetários.</p>
+        <p><strong>Base da análise:</strong> aplicação Next.js existente em <code>canoa/na-kai-canoa</code>.</p>
+        <p><strong>Data:</strong> agosto de 2026.</p>
+      </div>
+    </section>
+
+    <h2>1. Resumo Executivo</h2>
+    <p>
+      A aplicação atual é um protótipo navegável bem encaminhado no frontend, com telas públicas, fluxo de reserva,
+      área do associado e painel administrativo. A arquitetura já separa domínio, serviços client-side, APIs internas e
+      repositories mockados, o que facilita a evolução para um backend real.
+    </p>
+    <p>
+      Porém, o projeto ainda não está pronto para produção. As principais funções críticas do negócio - persistência,
+      controle real de vagas, pagamento, webhook, autenticação, autorização, cancelamento, remarcação e gestão dinâmica -
+      ainda dependem de implementação.
+    </p>
+
+    <div class="grid">
+      <div class="card">
+        <span class="metric">3/10</span>
+        <strong>Nota para produção</strong>
+        <p class="small">Baixa prontidão por ausência de backend, banco, autenticação real e pagamentos.</p>
+      </div>
+      <div class="card">
+        <span class="metric">7/10</span>
+        <strong>Nota como protótipo</strong>
+        <p class="small">Boa navegação, boa base visual e contratos iniciais de domínio.</p>
+      </div>
+      <div class="card">
+        <span class="metric">20%-30%</span>
+        <strong>MVP real pronto</strong>
+        <p class="small">Principalmente frontend e API mockada.</p>
+      </div>
+    </div>
+
+    <h2>2. Arquitetura Atual</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Diagnóstico</th>
+          <th>Evidência</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Framework</td>
+          <td>Next.js 16 com App Router</td>
+          <td><code>package.json</code>, <code>src/app</code></td>
+        </tr>
+        <tr>
+          <td>Frontend</td>
+          <td>React 19, TypeScript, Tailwind 4, lucide-react</td>
+          <td><code>package.json</code></td>
+        </tr>
+        <tr>
+          <td>Camada de domínio</td>
+          <td>Tipos e regras iniciais definidos</td>
+          <td><code>src/domain/types.ts</code>, <code>src/domain/rules.ts</code></td>
+        </tr>
+        <tr>
+          <td>APIs internas</td>
+          <td>Route Handlers mockados</td>
+          <td><code>src/app/api/*</code></td>
+        </tr>
+        <tr>
+          <td>Persistência</td>
+          <td>Não implementada</td>
+          <td>Dados em <code>src/server/mock-data.ts</code></td>
+        </tr>
+        <tr>
+          <td>Autenticação</td>
+          <td>Fake, baseada em <code>sessionStorage</code></td>
+          <td><code>auth-service.ts</code>, <code>MockRoleGuard.tsx</code></td>
+        </tr>
+        <tr>
+          <td>Pagamentos</td>
+          <td>Somente contrato/mock visual</td>
+          <td><code>Payment</code>, <code>paymentMethod</code>, Pix mock</td>
+        </tr>
+        <tr>
+          <td>Testes</td>
+          <td>Não encontrados</td>
+          <td>Sem Jest, Vitest, Playwright ou testes no projeto</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>3. Banco de Dados e Entidades</h2>
+    <p>
+      Não há banco implementado. Não foram encontrados Prisma, Drizzle, Supabase, migrations, schema SQL, RLS,
+      variáveis de ambiente de banco ou conexão PostgreSQL. As entidades existem apenas como tipos TypeScript e dados
+      mockados em memória.
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Conceito esperado</th>
+          <th>Situação atual</th>
+          <th>Observação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Customer</td><td>Parcial</td><td>Tipo existe, sem persistência</td></tr>
+        <tr><td>Member / Plan</td><td>Parcial</td><td>Plano e dashboard mockados</td></tr>
+        <tr><td>Experience / Service</td><td>Parcial</td><td>Experiências hardcoded</td></tr>
+        <tr><td>Boat / Canoe</td><td>Parcial</td><td>Canoas mockadas, não integradas à agenda</td></tr>
+        <tr><td>Schedule / Departure</td><td>Parcial</td><td><code>AvailabilitySlot</code> mockado</td></tr>
+        <tr><td>Reservation / Participant</td><td>Parcial</td><td>Fluxo cria reserva em memória</td></tr>
+        <tr><td>Payment</td><td>Parcial</td><td>Status e Pix fake, sem gateway</td></tr>
+        <tr><td>Refund / Voucher / Credit</td><td>Não implementado</td><td>Alguns tipos existem, sem fluxo funcional</td></tr>
+        <tr><td>Attendance / No-show</td><td>Não implementado</td><td>Status existe, regra não existe</td></tr>
+        <tr><td>Notification / Promotion</td><td>Não implementado</td><td>Sem modelagem funcional</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4. Funcionalidades Analisadas</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Funcionalidade</th>
+          <th>Status</th>
+          <th>Evidência</th>
+          <th>Complexidade</th>
+          <th>Horas restantes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>PF01</td><td>Site institucional</td><td class="status-partial">Parcial</td><td><code>/</code>, cards, hero</td><td>Baixa</td><td>8-16h</td></tr>
+        <tr><td>PF02</td><td>Galeria multimídia</td><td class="status-partial">Parcial</td><td><code>ExperienceCarousel</code></td><td>Baixa</td><td>8-16h</td></tr>
+        <tr><td>PF03</td><td>Catálogo de experiências</td><td class="status-partial">Parcial</td><td><code>/api/experiences</code></td><td>Baixa/Média</td><td>12-24h</td></tr>
+        <tr><td>PF04</td><td>Calendário de disponibilidade</td><td class="status-partial">Parcial</td><td><code>AvailabilitySlot</code></td><td>Média</td><td>30-50h</td></tr>
+        <tr><td>PF05</td><td>Controle de vagas</td><td class="status-partial">Parcial</td><td>Vagas mockadas, sem lock</td><td>Média</td><td>35-60h</td></tr>
+        <tr><td>PF06</td><td>Embarcações e capacidade</td><td class="status-partial">Parcial</td><td><code>Canoe</code> mockado</td><td>Média/Alta</td><td>40-70h</td></tr>
+        <tr><td>PF07</td><td>Mínimo de participantes</td><td class="status-partial">Parcial</td><td><code>getMinimumParticipants</code></td><td>Média</td><td>12-24h</td></tr>
+        <tr><td>PF08</td><td>Reserva individual</td><td class="status-partial">Parcial</td><td><code>/reserva</code></td><td>Média</td><td>40-70h</td></tr>
+        <tr><td>PF09</td><td>Reserva de grupo</td><td class="status-partial">Parcial</td><td>Quantidade de participantes</td><td>Média</td><td>30-50h</td></tr>
+        <tr><td>PF10</td><td>Checkout</td><td class="status-partial">Parcial</td><td>Resumo e total, sem política real</td><td>Média</td><td>30-50h</td></tr>
+        <tr><td>PF11</td><td>Pix</td><td class="status-ui">Somente interface</td><td>Pix mock, sem gateway</td><td>Alta</td><td>50-90h</td></tr>
+        <tr><td>PF12</td><td>Cartão</td><td class="status-ui">Somente interface</td><td>Opção visual</td><td>Alta</td><td>50-90h</td></tr>
+        <tr><td>PF13</td><td>Webhook de pagamento</td><td class="status-no">Não implementado</td><td>Sem rota webhook</td><td>Alta</td><td>40-80h</td></tr>
+        <tr><td>PF14</td><td>Status de pagamentos</td><td class="status-partial">Parcial</td><td><code>PaymentStatus</code></td><td>Média/Alta</td><td>24-40h</td></tr>
+        <tr><td>PF15</td><td>Cancelamento</td><td class="status-ui">Somente interface</td><td>Admin muda status em memória</td><td>Média</td><td>35-60h</td></tr>
+        <tr><td>PF16</td><td>Reembolso</td><td class="status-no">Não implementado</td><td>Sem refund</td><td>Alta</td><td>50-90h</td></tr>
+        <tr><td>PF17</td><td>Remarcação</td><td class="status-no">Não implementado</td><td>Sem tela/API</td><td>Média/Alta</td><td>35-65h</td></tr>
+        <tr><td>PF18</td><td>Crédito/Voucher</td><td class="status-no">Não implementado</td><td>Tipo sem fluxo</td><td>Média</td><td>30-50h</td></tr>
+        <tr><td>PF19</td><td>Cadastro de associado</td><td class="status-ui">Somente interface</td><td>Mock member</td><td>Média</td><td>30-50h</td></tr>
+        <tr><td>PF20</td><td>Autenticação</td><td class="status-ui">Somente interface</td><td><code>sessionStorage</code></td><td>Média</td><td>40-70h</td></tr>
+        <tr><td>PF21</td><td>Plano do associado</td><td class="status-partial">Parcial</td><td><code>MemberPlan</code></td><td>Alta</td><td>45-80h</td></tr>
+        <tr><td>PF22</td><td>Créditos de remadas</td><td class="status-partial">Parcial</td><td><code>QuotaMovement</code></td><td>Média/Alta</td><td>45-80h</td></tr>
+        <tr><td>PF23</td><td>Reserva do associado</td><td class="status-partial">Parcial</td><td>Usa fluxo comum, sem cota real</td><td>Alta</td><td>45-80h</td></tr>
+        <tr><td>PF24</td><td>No-show</td><td class="status-no">Não implementado</td><td>Status sem regra</td><td>Média/Alta</td><td>25-50h</td></tr>
+        <tr><td>PF25</td><td>Histórico associado</td><td class="status-partial">Parcial</td><td><code>/associado/reservas</code></td><td>Média</td><td>25-45h</td></tr>
+        <tr><td>PF26</td><td>Administração de reservas</td><td class="status-partial">Parcial</td><td><code>/admin</code></td><td>Média</td><td>40-70h</td></tr>
+        <tr><td>PF27</td><td>Administração de associados</td><td class="status-no">Não implementado</td><td>Sem CRUD</td><td>Média</td><td>35-60h</td></tr>
+        <tr><td>PF28</td><td>Gestão de agenda</td><td class="status-no">Não implementado</td><td>Sem CRUD agenda</td><td>Média</td><td>40-70h</td></tr>
+        <tr><td>PF29</td><td>Gestão de serviços</td><td class="status-no">Não implementado</td><td>Hardcoded</td><td>Média</td><td>35-60h</td></tr>
+        <tr><td>PF30</td><td>Gestão de pagamentos</td><td class="status-ui">Somente interface</td><td>Métricas mockadas</td><td>Média/Alta</td><td>40-70h</td></tr>
+        <tr><td>PF31</td><td>Gestão de reembolso</td><td class="status-no">Não implementado</td><td>Sem fluxo</td><td>Alta</td><td>40-80h</td></tr>
+        <tr><td>PF32</td><td>Português/Inglês</td><td class="status-no">Não implementado</td><td>Sem i18n</td><td>Média</td><td>30-60h</td></tr>
+        <tr><td>PF33</td><td>Planos trimestrais/anuais</td><td class="status-out">Fora do MVP</td><td>Futuro</td><td>Média</td><td>Fase 2</td></tr>
+        <tr><td>PF34</td><td>Fidelidade</td><td class="status-out">Fora do MVP</td><td>Futuro</td><td>Média</td><td>Fase 2</td></tr>
+        <tr><td>PF35</td><td>Dashboard financeiro completo</td><td class="status-out">Fora do MVP</td><td>Futuro</td><td>Alta</td><td>Fase 2</td></tr>
+        <tr><td>PF36</td><td>Aplicativo Android/iOS</td><td class="status-out">Fora do MVP</td><td>Fora do escopo</td><td>Alta</td><td>Fase 3</td></tr>
+        <tr><td>PF37</td><td>Eventos especiais</td><td class="status-out">Fora do MVP</td><td>Futuro</td><td>Média</td><td>Fase 2</td></tr>
+      </tbody>
+    </table>
+
+    <h2>5. Segurança, Concorrência e Riscos Técnicos</h2>
+    <div class="note danger">
+      <strong>Risco crítico de overbooking:</strong> hoje não existe transação, lock, reserva temporária,
+      expiração de checkout ou constraint de capacidade. Duas pessoas poderiam visualizar a mesma vaga e concluir o fluxo
+      sem controle atômico real.
+    </div>
+    <ul>
+      <li>APIs administrativas podem ser chamadas sem autenticação server-side.</li>
+      <li>O papel de usuário é definido em <code>sessionStorage</code>, sem sessão real.</li>
+      <li>Não há rate limiting, logs, auditoria ou monitoramento.</li>
+      <li>Não há gateway de pagamento, webhook autenticado ou idempotência.</li>
+      <li>Não há banco, RLS, constraints, transações ou proteção contra IDOR.</li>
+      <li>Existem textos com mojibake/encoding no código lido, indicando necessidade de revisão de charset.</li>
+    </ul>
+
+    <h2>6. Estimativa de Esforço por Área</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Área</th>
+          <th>Horas estimadas restantes</th>
+          <th>Observação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Frontend</td><td>50-80h</td><td>Melhorias, estados, telas admin e ajustes responsivos</td></tr>
+        <tr><td>Backend/API</td><td>70-110h</td><td>APIs reais, regras, validações e permissões</td></tr>
+        <tr><td>Banco/modelagem</td><td>35-60h</td><td>Schema, migrations, constraints, índices e seeds</td></tr>
+        <tr><td>Integração de pagamento</td><td>60-100h</td><td>Pix, cartão, status, webhook, idempotência</td></tr>
+        <tr><td>Cancelamento/remarcação</td><td>35-60h</td><td>Regras de negócio, histórico e disponibilidade</td></tr>
+        <tr><td>Admin mínimo</td><td>35-60h</td><td>Gestão de reservas, agenda e serviços</td></tr>
+        <tr><td>Segurança</td><td>25-45h</td><td>Auth, autorização, proteção de rotas, validação server-side</td></tr>
+        <tr><td>Testes</td><td>30-60h</td><td>Fluxos críticos, API, reserva, pagamento e regressão</td></tr>
+        <tr><td>Deploy/observabilidade</td><td>15-30h</td><td>Ambientes, logs, monitoramento e backups</td></tr>
+        <tr><td>Refatoração</td><td>25-45h</td><td>Remover mocks, revisar encoding, organizar domínio</td></tr>
+      </tbody>
+    </table>
+
+    <h2>7. Cenários de Entrega</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Cenário</th>
+          <th>Escopo</th>
+          <th>Horas estimadas</th>
+          <th>Complexidade</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>A - MVP essencial</td>
+          <td>Site, catálogo, agenda, reserva, pagamento, webhook, cancelamento básico e admin mínimo.</td>
+          <td>220-340h</td>
+          <td>Média-Alta</td>
+        </tr>
+        <tr>
+          <td>B - MVP completo</td>
+          <td>Inclui associados, créditos, histórico, no-show, planos e administração mais robusta.</td>
+          <td>380-580h</td>
+          <td>Alta</td>
+        </tr>
+        <tr>
+          <td>C - Produto completo</td>
+          <td>Inclui i18n, fidelidade, promoções, eventos, financeiro avançado e automações.</td>
+          <td>650-950h</td>
+          <td>Alta</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>8. Custos Externos a Considerar</h2>
+    <p>Estes custos são separados do desenvolvimento e devem ser cotados diretamente nos fornecedores escolhidos.</p>
+    <ul>
+      <li>Hospedagem ou plataforma de deploy.</li>
+      <li>Banco PostgreSQL gerenciado ou VPS.</li>
+      <li>Domínio.</li>
+      <li>Storage de imagens e arquivos.</li>
+      <li>Gateway de pagamento para Pix e cartão.</li>
+      <li>Taxas de transação Pix/cartão.</li>
+      <li>E-mail transacional.</li>
+      <li>WhatsApp API, caso seja incluído.</li>
+      <li>Monitoramento, logs e backups.</li>
+    </ul>
+
+    <h2>9. Riscos de Negócio e Requisitos Pendentes</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Riscos técnicos</h3>
+        <ul>
+          <li>Overbooking.</li>
+          <li>Webhook e pagamento.</li>
+          <li>Autenticação e autorização.</li>
+          <li>Reembolso e remarcação.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Riscos de negócio</h3>
+        <ul>
+          <li>Gateway definitivo indefinido.</li>
+          <li>Regras de cancelamento pendentes.</li>
+          <li>Planos de associados pendentes.</li>
+          <li>No-show indefinido.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Dependências externas</h3>
+        <ul>
+          <li>Fornecedor de pagamento.</li>
+          <li>Dados fiscais/recebimento.</li>
+          <li>Serviço de e-mail/WhatsApp.</li>
+          <li>Infraestrutura de produção.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 class="page-break">10. Estrutura de Proposta Comercial sem Valores</h2>
+    <p>
+      Esta seção pode ser usada como base para uma proposta ao cliente. Ela foi estruturada sem valores monetários, para
+      permitir negociação posterior após fechamento do escopo.
+    </p>
+
+    <h3>1. Problema</h3>
+    <p>
+      A operação atual depende de atendimento humano por Instagram, WhatsApp, telefone, Pix manual e controles em grupos
+      de mensagens. Isso aumenta retrabalho, risco de erro, dificuldade de controlar vagas e dependência da equipe para
+      fechar reservas.
+    </p>
+
+    <h3>2. Solução</h3>
+    <p>
+      Desenvolvimento de uma plataforma web responsiva para o Pontal VA'A, permitindo que clientes conheçam experiências,
+      escolham datas, façam reservas, realizem pagamento e recebam confirmação. A gestão terá uma área administrativa
+      para acompanhar agenda, reservas, participantes, disponibilidade e operação diária.
+    </p>
+
+    <h3>3. Benefícios</h3>
+    <ul>
+      <li>Reservas disponíveis 24 horas por dia.</li>
+      <li>Redução da dependência operacional do atendimento manual.</li>
+      <li>Controle mais seguro de vagas e capacidade.</li>
+      <li>Pagamentos integrados e rastreáveis.</li>
+      <li>Melhor experiência para turistas e clientes avulsos.</li>
+      <li>Organização da agenda e previsibilidade da operação.</li>
+      <li>Base para controle futuro de associados, créditos e planos.</li>
+    </ul>
+
+    <h3>4. Escopo sugerido para o MVP essencial</h3>
+    <ul>
+      <li>Site institucional responsivo.</li>
+      <li>Catálogo de experiências e páginas de detalhe.</li>
+      <li>Agenda e disponibilidade configurável.</li>
+      <li>Reserva individual e reserva de grupo.</li>
+      <li>Checkout com cálculo de valor total.</li>
+      <li>Integração inicial de pagamento.</li>
+      <li>Webhook para confirmação automática.</li>
+      <li>Cancelamento básico conforme regra definida.</li>
+      <li>Painel administrativo mínimo para gestão operacional.</li>
+      <li>Banco de dados, autenticação e deploy de produção.</li>
+    </ul>
+
+    <h3>5. Fora do escopo inicial</h3>
+    <ul>
+      <li>Aplicativo Android/iOS.</li>
+      <li>Dashboard financeiro completo.</li>
+      <li>Fidelidade, promoções e planos avançados.</li>
+      <li>Eventos especiais complexos.</li>
+      <li>Internacionalização completa.</li>
+      <li>Automações avançadas de WhatsApp.</li>
+    </ul>
+
+    <h3>6. Investimento</h3>
+    <p>
+      O investimento deve ser definido após validação final do escopo, regras de negócio e gateway de pagamento. O
+      projeto possui complexidade média-alta a alta por envolver pagamento, concorrência de vagas, cancelamento,
+      remarcação, associados e administração operacional.
+    </p>
+
+    <h3>7. Custos recorrentes</h3>
+    <p>
+      Custos de hospedagem, banco, domínio, storage, gateway de pagamento, e-mail, WhatsApp, monitoramento e backups
+      não fazem parte do desenvolvimento e devem ser contratados/cotados separadamente.
+    </p>
+
+    <h3>8. Evoluções futuras</h3>
+    <ul>
+      <li>Controle completo de associados e planos.</li>
+      <li>Créditos, vouchers e no-show.</li>
+      <li>Reembolso avançado e remarcação completa.</li>
+      <li>Inglês para turistas estrangeiros.</li>
+      <li>Eventos especiais e ações promocionais.</li>
+      <li>Dashboard financeiro completo.</li>
+    </ul>
+
+    <h2>11. Veredito</h2>
+    <table>
+      <tbody>
+        <tr><th>Quanto do MVP já está pronto?</th><td>Aproximadamente 20% a 30%, principalmente frontend e API mockada.</td></tr>
+        <tr><th>Quanto ainda falta?</th><td>70% a 80%, especialmente backend, banco, pagamento, segurança e regras operacionais.</td></tr>
+        <tr><th>Complexidade real</th><td>Alta.</td></tr>
+        <tr><th>Horas aproximadas para MVP essencial</th><td>220-340h.</td></tr>
+        <tr><th>Menor escopo viável</th><td>Site, catálogo, agenda, reserva, pagamento, webhook, cancelamento básico e admin mínimo.</td></tr>
+        <tr><th>Fase 2 recomendada</th><td>Associados avançados, créditos, no-show, reembolso sofisticado, i18n, fidelidade e dashboard financeiro.</td></tr>
+      </tbody>
+    </table>
+  </body>
+</html>

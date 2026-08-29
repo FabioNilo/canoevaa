@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ILHÉUS CANOE VA'A
 
-## Getting Started
+MVP essencial em Next.js para catálogo de experiências, reserva, pagamento mock e admin mínimo de reservas + agenda.
 
-First, run the development server:
+## Stack
+
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Prisma 7
+- PostgreSQL
+- Auth.js com credenciais
+- Vitest
+- Playwright
+
+## Rodar local
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Sem `DATABASE_URL`, as APIs usam mocks internos para manter o front navegável. Com banco configurado, os repositories passam a usar Prisma/PostgreSQL.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Banco local
 
-## Learn More
+O projeto inclui `compose.yml` para subir PostgreSQL local com Docker:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+docker compose up -d postgres
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Depois:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Copie `.env.example` para `.env`, se ainda não existir.
+2. Ajuste `DATABASE_URL`, se necessário.
+3. Rode:
 
-## Deploy on Vercel
+```bash
+npm run db:generate
+npx prisma migrate deploy
+npm run db:seed
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Para conferir se o banco está atualizado:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npx prisma migrate status
+```
+
+Admin de desenvolvimento:
+
+```txt
+admin@ilheus.local
+admin123
+```
+
+## Fluxos principais
+
+- `/` catálogo público
+- `/experiencias/[slug]` detalhe com galeria
+- `/reserva` fluxo de reserva
+- `/reserva/confirmada` confirmação
+- `/associado/login` login administrativo
+- `/admin` reservas, agenda e permissões
+
+## Checklist de qualidade
+
+Após cada etapa:
+
+```bash
+npm run lint
+npm run test
+npm run build
+```
+
+Para E2E:
+
+```bash
+npm run test:e2e
+```
+
+## Ordem de implementação
+
+1. Corrigir base técnica e encoding.
+2. Adicionar Prisma/PostgreSQL.
+3. Modelar schema e seeds.
+4. Migrar experiências e galeria para banco.
+5. Migrar agenda/disponibilidade.
+6. Implementar reserva transacional.
+7. Implementar Auth.js e proteger admin/API.
+8. Implementar payment adapter mock.
+9. Implementar cancelamento configurável.
+10. Implementar admin reservas + agenda.
+11. Adicionar Vitest e testes de domínio/API.
+12. Adicionar Playwright e testes E2E.
+13. Preparar deploy e documentação.

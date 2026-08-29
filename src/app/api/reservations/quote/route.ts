@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const response = reservationRepository.quote({
+  const response = await reservationRepository.quote({
     experienceSlug: body.experienceSlug,
     participantsCount: body.participantsCount,
   });
