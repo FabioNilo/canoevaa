@@ -1,12 +1,40 @@
 "use client";
 
-import { ArrowLeft, Eye, KeyRound, Mail } from "lucide-react";
+import { ArrowLeft, Eye, KeyRound, Loader2, Mail } from "lucide-react";
+import { signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { ButtonLink, PrimaryButton } from "@/components/PrimaryButton";
-import { authService } from "@/services/auth-service";
+import { FormEvent, useState } from "react";
+import { PrimaryButton } from "@/components/PrimaryButton";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("admin@ilheus.local");
+  const [password, setPassword] = useState("admin123");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const response = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+      callbackUrl: "/admin",
+    });
+
+    setLoading(false);
+
+    if (response?.error) {
+      setError("E-mail ou senha inválidos.");
+      return;
+    }
+
+    window.location.href = response?.url ?? "/admin";
+  }
+
   return (
     <main className="grid min-h-screen place-items-center bg-surface px-4 py-10">
       <section className="w-full max-w-md">
@@ -24,18 +52,20 @@ export default function LoginPage() {
             className="mx-auto h-20 w-20 rounded-full object-cover"
           />
           <h1 className="mt-5 text-center font-display text-3xl font-bold text-deep">ILHÉUS CANOE VA&apos;A</h1>
-          <p className="mt-2 text-center text-muted">Área do associado</p>
+          <p className="mt-2 text-center text-muted">Área administrativa</p>
 
-          <form className="mt-8 space-y-4">
+          <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
             <label className="block">
               <span className="text-sm font-bold text-deep">E-mail</span>
               <span className="mt-2 flex h-12 items-center gap-3 rounded-xl border border-line bg-surface px-4">
                 <Mail size={18} className="text-muted" />
                 <input
                   type="email"
-                  defaultValue="fabio@nakai.com"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
                   className="w-full bg-transparent text-sm outline-none"
                   aria-label="E-mail"
+                  autoComplete="email"
                 />
               </span>
             </label>
@@ -46,24 +76,27 @@ export default function LoginPage() {
                 <KeyRound size={18} className="text-muted" />
                 <input
                   type="password"
-                  defaultValue="canoa123"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
                   className="w-full bg-transparent text-sm outline-none"
                   aria-label="Senha"
+                  autoComplete="current-password"
                 />
                 <Eye size={18} className="text-muted" />
               </span>
             </label>
 
-            <ButtonLink href="/associado" className="w-full" onClick={() => authService.setCurrentRole("member")}>
+            {error ? <p className="rounded-xl bg-danger/10 px-4 py-3 text-sm font-semibold text-danger">{error}</p> : null}
+
+            <PrimaryButton type="submit" className="w-full" disabled={loading}>
+              {loading ? <Loader2 size={18} className="animate-spin" /> : null}
               Entrar
-            </ButtonLink>
+            </PrimaryButton>
           </form>
 
-          <div className="mt-6 border-t border-line pt-6">
-            <p className="text-center text-sm text-muted">Primeiro acesso?</p>
-            <PrimaryButton variant="secondary" className="mt-3 w-full" type="button">
-              Ativar minha conta
-            </PrimaryButton>
+          <div className="mt-6 rounded-2xl border border-line bg-surface p-4 text-sm text-muted">
+            Admin de desenvolvimento: <strong className="text-deep">admin@ilheus.local</strong> /{" "}
+            <strong className="text-deep">admin123</strong>
           </div>
         </div>
       </section>

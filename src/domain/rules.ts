@@ -1,4 +1,4 @@
-import type { ApiError, Experience, ReservationDraft, ReservationQuote } from "./types";
+import type { ApiError, Experience, ExperienceBookingPolicy, ReservationDraft, ReservationQuote } from "./types";
 
 export const RESERVATION_RULES = {
   generalMinParticipants: 4,
@@ -21,15 +21,56 @@ export function getMinimumParticipants(experience: Experience) {
     : experience.minParticipants;
 }
 
+export function getExperienceBookingPolicy(experience: Pick<Experience, "kind" | "scheduleMode">): ExperienceBookingPolicy {
+  if (experience.kind === "celebration") {
+    return {
+      channel: "request",
+      canReserveOnline: false,
+      canGenerateDefaultSchedule: false,
+      publicLabel: "Sob consulta",
+      adminLabel: "Comemoracao sob consulta",
+      reason: "Comemoracoes exigem alinhamento previo com a equipe.",
+    };
+  }
+
+  if (experience.kind === "expedition") {
+    return {
+      channel: "request",
+      canReserveOnline: false,
+      canGenerateDefaultSchedule: false,
+      publicLabel: "Sob consulta",
+      adminLabel: "Expedicao sob consulta",
+      reason: "Expedicoes dependem de rota, clima e planejamento operacional.",
+    };
+  }
+
+  return {
+    channel: "online",
+    canReserveOnline: true,
+    canGenerateDefaultSchedule: experience.scheduleMode === "daily_default",
+    publicLabel: experience.scheduleMode === "manual" ? "Datas especificas" : "Reserva online",
+    adminLabel: experience.scheduleMode === "manual" ? "Regular com datas especificas" : "Regular diario",
+  };
+}
+
 export function buildReservationQuote(experience: Experience, participantsCount: number): ReservationQuote {
   const errors: ApiError[] = [];
   const minParticipants = getMinimumParticipants(experience);
+  const bookingPolicy = getExperienceBookingPolicy(experience);
 
-  if (participantsCount < minParticipants) {
+  if (!bookingPolicy.canReserveOnline) {
     errors.push({
-      code: "MIN_PARTICIPANTS",
+      code: "EXPERIENCE_REQUIRES_REQUEST",
+      field: "experienceSlug",
+      message: bookingPolicy.reason ?? "Este passeio precisa ser combinado com a equipe.",
+    });
+  }
+
+  if (participantsCount !== 1) {
+    errors.push({
+      code: "INDIVIDUAL_RESERVATION_ONLY",
       field: "participantsCount",
-      message: `Esta experiência exige no mínimo ${minParticipants} participantes.`,
+      message: "Cada cliente pode reservar apenas uma vaga por passeio.",
     });
   }
 
@@ -48,6 +89,7 @@ export function buildReservationQuote(experience: Experience, participantsCount:
     totalCents: experience.priceCents * participantsCount,
     currency: RESERVATION_RULES.currency,
     quotaCost: experience.quotaCost,
+    minimumParticipantsToRun: minParticipants,
     valid: errors.length === 0,
     errors,
   };
@@ -61,12 +103,12 @@ export function validateReservationDraft(experience: Experience, draft: Reservat
     errors.push({ code: "CUSTOMER_NAME_REQUIRED", field: "customer.fullName", message: "Informe o nome do responsável." });
   }
 
-  if (!draft.customer.cpf.trim()) {
-    errors.push({ code: "CUSTOMER_CPF_REQUIRED", field: "customer.cpf", message: "Informe o CPF do responsável." });
+  if (!draft.customer.rg.trim()) {
+    errors.push({ code: "CUSTOMER_RG_REQUIRED", field: "customer.rg", message: "Informe o RG do responsável." });
   }
 
-  if (!draft.customer.birthDate.trim()) {
-    errors.push({ code: "CUSTOMER_BIRTH_DATE_REQUIRED", field: "customer.birthDate", message: "Informe a data de nascimento." });
+  if (!draft.customer.phone.trim()) {
+    errors.push({ code: "CUSTOMER_PHONE_REQUIRED", field: "customer.phone", message: "Informe o telefone do responsável." });
   }
 
   if (draft.participants.length !== draft.participantsCount) {
@@ -74,6 +116,14 @@ export function validateReservationDraft(experience: Experience, draft: Reservat
       code: "PARTICIPANTS_COUNT_MISMATCH",
       field: "participants",
       message: "A quantidade de participantes cadastrados precisa bater com a reserva.",
+    });
+  }
+
+  if (draft.participants.some((participant) => !participant.fullName.trim() || !participant.rg.trim())) {
+    errors.push({
+      code: "PARTICIPANT_IDENTITY_REQUIRED",
+      field: "participants",
+      message: "Informe nome e RG do participante para o termo de responsabilidade.",
     });
   }
 

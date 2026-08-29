@@ -2,52 +2,24 @@
 
 import { ArrowLeft, Clock, MapPin, ShieldCheck, UsersRound, Waves } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { ExperienceCarousel } from "@/components/ExperienceCarousel";
 import { ButtonLink } from "@/components/PrimaryButton";
-import { centsToCurrency } from "@/domain/rules";
+import { centsToCurrency, getExperienceBookingPolicy } from "@/domain/rules";
 import type { Experience } from "@/domain/types";
-import { experienceService } from "@/services/experience-service";
 
-export default function ExperienceDetailClient({ slug }: { slug: string }) {
-  const [experience, setExperience] = useState<Experience | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-
-    experienceService
-      .getBySlug(slug)
-      .then((data) => {
-        if (active) {
-          setExperience(data);
-          setError(null);
-        }
-      })
-      .catch((err: Error) => {
-        if (active) {
-          setError(err.message);
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [slug]);
-
-  if (loading) {
-    return <main className="min-h-screen bg-surface px-4 py-10 text-muted">Carregando experiência...</main>;
+export default function ExperienceDetailClient({
+  initialExperience,
+  initialError,
+}: {
+  initialExperience: Experience | null;
+  initialError: string | null;
+}) {
+  if (initialError || !initialExperience) {
+    return <main className="min-h-screen bg-surface px-4 py-10 text-danger">{initialError ?? "Experiência não encontrada."}</main>;
   }
 
-  if (error || !experience) {
-    return <main className="min-h-screen bg-surface px-4 py-10 text-danger">{error ?? "Experiência não encontrada."}</main>;
-  }
+  const experience = initialExperience;
+  const bookingPolicy = getExperienceBookingPolicy(experience);
 
   return (
     <main className="min-h-screen bg-surface pb-12">
@@ -122,9 +94,16 @@ export default function ExperienceDetailClient({ slug }: { slug: string }) {
               <MapPin size={18} /> {experience.meetingPoint}
             </p>
           </div>
-          <ButtonLink href="/reserva" className="mt-6 w-full">
-            Reservar essa remada
-          </ButtonLink>
+          {bookingPolicy.canReserveOnline ? (
+            <ButtonLink href="/reserva" className="mt-6 w-full">
+              Reservar essa remada
+            </ButtonLink>
+          ) : (
+            <div className="mt-6 rounded-2xl border border-line bg-surface p-4 text-sm leading-6 text-muted">
+              <p className="font-bold text-deep">{bookingPolicy.publicLabel}</p>
+              <p className="mt-1">{bookingPolicy.reason}</p>
+            </div>
+          )}
         </aside>
       </section>
     </main>

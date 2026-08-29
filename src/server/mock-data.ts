@@ -10,6 +10,7 @@ import type {
   Participant,
   Payment,
   Reservation,
+  ScheduleSlot,
   TermVersion,
 } from "@/domain/types";
 import { buildReservationQuote } from "@/domain/rules";
@@ -26,6 +27,7 @@ export const experiences: Experience[] = [
     currency: "BRL",
     durationMinutes: 150,
     scheduleLabel: "04:30 às 07:00",
+    scheduleMode: "daily_default",
     minParticipants: 4,
     maxParticipants: 25,
     meetingPoint: "Praia do Cristo, Ilhéus",
@@ -67,11 +69,12 @@ export const experiences: Experience[] = [
     name: "Remada Avulsa",
     kind: "regular",
     shortDescription: "Uma remada prática para conhecer a canoa havaiana.",
-    description: "Opçao direta para quem quer conhecer o remo com instruçaoo e acompanhamento.",
+    description: "Opção direta para quem quer conhecer o remo com instrução e acompanhamento.",
     priceCents: 3500,
     currency: "BRL",
     durationMinutes: 75,
     scheduleLabel: "Horários variados",
+    scheduleMode: "daily_default",
     minParticipants: 4,
     maxParticipants: 25,
     meetingPoint: "Praia do Cristo, Ilhéus",
@@ -104,6 +107,7 @@ export const experiences: Experience[] = [
     currency: "BRL",
     durationMinutes: 90,
     scheduleLabel: "16:30 às 18:00",
+    scheduleMode: "daily_default",
     minParticipants: 4,
     maxParticipants: 25,
     meetingPoint: "Praia do Cristo, Ilhéus",
@@ -128,6 +132,7 @@ export const experiences: Experience[] = [
     currency: "BRL",
     durationMinutes: 90,
     scheduleLabel: "Datas específicas",
+    scheduleMode: "manual",
     minParticipants: 4,
     maxParticipants: 25,
     meetingPoint: "Praia do Cristo, Ilhéus",
@@ -160,6 +165,7 @@ export const experiences: Experience[] = [
     currency: "BRL",
     durationMinutes: 120,
     scheduleLabel: "Sob consulta",
+    scheduleMode: "manual",
     minParticipants: 6,
     maxParticipants: 25,
     meetingPoint: "Praia do Cristo, Ilhéus",
@@ -184,6 +190,7 @@ export const experiences: Experience[] = [
     currency: "BRL",
     durationMinutes: 180,
     scheduleLabel: "Sob agenda",
+    scheduleMode: "manual",
     minParticipants: 4,
     maxParticipants: 25,
     meetingPoint: "Definido conforme destino",
@@ -251,20 +258,34 @@ export const expeditions: Expedition[] = [
 ];
 
 export const canoes: Canoe[] = [
-  { id: "canoe_1", name: "Canoa 1", capacity: 5, status: "available" },
-  { id: "canoe_2", name: "Canoa 2", capacity: 5, status: "available" },
-  { id: "canoe_3", name: "Canoa 3", capacity: 5, status: "available" },
-  { id: "canoe_4", name: "Canoa 4", capacity: 5, status: "available" },
-  { id: "canoe_5", name: "Canoa 5", capacity: 5, status: "maintenance" },
+  { id: "canoe_1", name: "Canoa 1", capacity: 5, isActive: true, status: "available" },
+  { id: "canoe_2", name: "Canoa 2", capacity: 5, isActive: true, status: "available" },
+  { id: "canoe_3", name: "Canoa 3", capacity: 5, isActive: true, status: "available" },
+  { id: "canoe_4", name: "Canoa 4", capacity: 5, isActive: true, status: "available" },
+  { id: "canoe_5", name: "Canoa 5", capacity: 5, isActive: false, status: "maintenance" },
 ];
 
 export const availabilitySlots: AvailabilitySlot[] = [
-  { id: "slot_1", experienceSlug: "nascer-do-sol", date: "2026-08-10", time: "04:30", capacityTotal: 20, booked: 12, availableSpots: 8, status: "available" },
-  { id: "slot_2", experienceSlug: "remada-avulsa", date: "2026-08-11", time: "07:30", capacityTotal: 20, booked: 17, availableSpots: 3, status: "low" },
-  { id: "slot_3", experienceSlug: "por-do-sol", date: "2026-08-12", time: "16:30", capacityTotal: 20, booked: 8, availableSpots: 12, status: "available" },
-  { id: "slot_4", experienceSlug: "lua-cheia", date: "2026-08-14", time: "18:30", capacityTotal: 20, booked: 20, availableSpots: 0, status: "full" },
-  { id: "slot_5", experienceSlug: "comemoracoes", date: "2026-08-15", time: "16:30", capacityTotal: 20, booked: 0, availableSpots: 20, status: "available" },
+  { id: "slot_1", experienceSlug: "nascer-do-sol", date: "2026-09-01", time: "04:30", capacityTotal: 10, booked: 6, occupiedSpots: 6, pendingParticipants: 1, availableSpots: 4, minimumParticipants: 4, confirmedParticipants: 5, remainingToMinimum: 0, hasMinimumParticipants: true, status: "low" },
+  { id: "slot_2", experienceSlug: "remada-avulsa", date: "2026-09-02", time: "07:30", capacityTotal: 10, booked: 8, occupiedSpots: 8, pendingParticipants: 2, availableSpots: 2, minimumParticipants: 4, confirmedParticipants: 6, remainingToMinimum: 0, hasMinimumParticipants: true, status: "low" },
+  { id: "slot_3", experienceSlug: "por-do-sol", date: "2026-09-03", time: "16:30", capacityTotal: 10, booked: 4, occupiedSpots: 4, pendingParticipants: 1, availableSpots: 6, minimumParticipants: 4, confirmedParticipants: 3, remainingToMinimum: 0, hasMinimumParticipants: true, status: "available" },
+  { id: "slot_4", experienceSlug: "lua-cheia", date: "2026-09-04", time: "18:30", capacityTotal: 10, booked: 10, occupiedSpots: 10, pendingParticipants: 2, availableSpots: 0, minimumParticipants: 4, confirmedParticipants: 8, remainingToMinimum: 0, hasMinimumParticipants: true, status: "full" },
+  { id: "slot_5", experienceSlug: "comemoracoes", date: "2026-09-05", time: "16:30", capacityTotal: 10, booked: 0, occupiedSpots: 0, pendingParticipants: 0, availableSpots: 10, minimumParticipants: 6, confirmedParticipants: 0, remainingToMinimum: 6, hasMinimumParticipants: false, status: "available" },
 ];
+
+export const scheduleSlots: ScheduleSlot[] = availabilitySlots.map((slot) => {
+  const experience = experiences.find((item) => item.slug === slot.experienceSlug);
+
+  return {
+    ...slot,
+    startsAt: `${slot.date}T${slot.time}:00.000Z`,
+    experienceName: experience?.name ?? slot.experienceSlug,
+    canoes: [
+      { id: `${slot.id}_canoe_1`, canoeId: "canoe_1", canoeName: "Canoa 1", capacity: 5 },
+      { id: `${slot.id}_canoe_2`, canoeId: "canoe_2", canoeName: "Canoa 2", capacity: 5 },
+    ],
+  };
+});
 
 export const activeTerm: TermVersion = {
   id: "term_risk_2026_01",
@@ -277,6 +298,7 @@ export const activeTerm: TermVersion = {
 
 export const sampleCustomer: Customer = {
   fullName: "Fabio Almeida",
+  rg: "1234567",
   cpf: "000.000.000-00",
   birthDate: "1990-05-20",
   phone: "(73) 99999-0000",
@@ -289,6 +311,7 @@ export const sampleParticipants: Participant[] = [
   {
     id: "participant_1",
     fullName: "Fabio Almeida",
+    rg: "1234567",
     cpf: "000.000.000-00",
     birthDate: "1990-05-20",
     phone: "(73) 99999-0000",
@@ -299,6 +322,7 @@ export const sampleParticipants: Participant[] = [
   {
     id: "participant_2",
     fullName: "Ana Oliveira",
+    rg: "2345678",
     cpf: "111.111.111-11",
     birthDate: "1992-03-10",
     phone: "(73) 97777-0000",
@@ -309,6 +333,7 @@ export const sampleParticipants: Participant[] = [
   {
     id: "participant_3",
     fullName: "Renato Cunha",
+    rg: "3456789",
     cpf: "222.222.222-22",
     birthDate: "1988-08-15",
     phone: "(73) 95555-0000",
@@ -319,6 +344,7 @@ export const sampleParticipants: Participant[] = [
   {
     id: "participant_4",
     fullName: "Bruna Santos",
+    rg: "4567890",
     cpf: "333.333.333-33",
     birthDate: "1995-11-02",
     phone: "(73) 93333-0000",
@@ -348,10 +374,10 @@ export const reservations: Reservation[] = [
     experienceName: porDoSol.name,
     date: "2026-08-12",
     time: "16:30",
-    participantsCount: 4,
+    participantsCount: 1,
     customer: sampleCustomer,
-    participants: sampleParticipants,
-    quote: buildReservationQuote(porDoSol, 4),
+    participants: sampleParticipants.slice(0, 1),
+    quote: buildReservationQuote(porDoSol, 1),
     payment: waitingPayment,
     status: "waiting_payment",
     createdAt: "2026-08-09T10:00:00.000Z",
@@ -363,10 +389,10 @@ export const reservations: Reservation[] = [
     experienceName: nascerDoSol.name,
     date: "2026-08-10",
     time: "04:30",
-    participantsCount: 4,
+    participantsCount: 1,
     customer: sampleCustomer,
-    participants: sampleParticipants,
-    quote: buildReservationQuote(nascerDoSol, 4),
+    participants: sampleParticipants.slice(0, 1),
+    quote: buildReservationQuote(nascerDoSol, 1),
     payment: { id: "pay_2408", method: "pix", status: "confirmed", amountCents: 20000, dueAt: "2026-08-08T04:30:00.000Z" },
     status: "confirmed",
     createdAt: "2026-08-07T12:00:00.000Z",
@@ -411,5 +437,7 @@ export const adminOverview: AdminOverview = {
   pendingPayments: 1,
   activeMembers: 14,
   confirmations: reservations,
+  schedule: scheduleSlots,
+  experiences,
   users: adminUsers,
 };

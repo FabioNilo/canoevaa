@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { availabilityRepository } from "@/server/repositories";
 
-export function GET(request: Request) {
+export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  return NextResponse.json(availabilityRepository.list(searchParams.get("experienceSlug") ?? undefined));
+  return NextResponse.json(await availabilityRepository.list(searchParams.get("experienceSlug") ?? undefined));
 }

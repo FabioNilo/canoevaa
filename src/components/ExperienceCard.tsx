@@ -8,9 +8,10 @@ type Props = {
   experience: Experience;
   linked?: boolean;
   selected?: boolean;
+  priority?: boolean;
 };
 
-export function ExperienceCard({ experience, linked = true, selected = false }: Props) {
+export function ExperienceCard({ experience, linked = true, selected = false, priority = false }: Props) {
   const coverImage = experience.galleryImages[0];
   const imageCount = experience.galleryImages.length;
   const media = (
@@ -22,6 +23,7 @@ export function ExperienceCard({ experience, linked = true, selected = false }: 
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
           quality={92}
+          priority={priority}
           className="absolute inset-0 -z-20 object-cover transition duration-700 ease-out group-hover:scale-105"
           style={{ objectPosition: coverImage.objectPosition ?? "center" }}
         />

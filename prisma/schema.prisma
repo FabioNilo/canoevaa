@@ -1,0 +1,284 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  PUBLIC
+  MEMBER
+  ADMIN
+}
+
+enum ExperienceStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ExperienceKind {
+  REGULAR
+  CELEBRATION
+  EXPEDITION
+}
+
+enum ExperienceScheduleMode {
+  DAILY_DEFAULT
+  MANUAL
+}
+
+enum ScheduleStatus {
+  OPEN
+  BLOCKED
+  FULL
+  CANCELLED
+}
+
+enum ReservationStatus {
+  DRAFT
+  WAITING_PAYMENT
+  PAYMENT_CONFIRMED
+  CONFIRMED
+  CANCELLED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  EXPIRED
+  REFUNDED
+  CANCELLED
+}
+
+enum CancellationRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CancellationOutcome {
+  CREDIT
+  REFUND_PENDING
+  DENIED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String?
+  role         UserRole   @default(PUBLIC)
+  permissions  Json?
+  active       Boolean    @default(true)
+  member       Customer?
+  auditLogs    AuditLog[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Customer {
+  id           String        @id @default(cuid())
+  userId       String?       @unique
+  user         User?         @relation(fields: [userId], references: [id])
+  name         String
+  email        String?
+  phone        String
+  cpf          String?
+  rg           String?       @unique
+  birthDate    DateTime?
+  addressLine  String?
+  city         String?
+  state        String?
+  zipCode      String?
+  reservations Reservation[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([email])
+}
+
+model Experience {
+  id                 String              @id @default(cuid())
+  name               String
+  slug               String              @unique
+  kind               ExperienceKind      @default(REGULAR)
+  description        String
+  shortDescription   String
+  priceCents         Int
+  durationMinutes    Int
+  scheduleLabel      String
+  scheduleMode       ExperienceScheduleMode @default(DAILY_DEFAULT)
+  meetingPoint       String
+  difficulty         String
+  imageClass         String
+  availableTimes     String[]
+  includedItems      String[]
+  guidance           String[]
+  safetyNotes        String[]
+  minimumParticipants Int                 @default(4)
+  maximumParticipants Int                 @default(25)
+  quotaCost          Int                 @default(1)
+  status             ExperienceStatus    @default(ACTIVE)
+  images             ExperienceImage[]
+  scheduleSlots      ScheduleSlot[]
+  reservations       Reservation[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+}
+
+model ExperienceImage {
+  id             String     @id @default(cuid())
+  experienceId   String
+  experience     Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  src            String
+  alt            String
+  caption        String?
+  objectPosition String?
+  sortOrder      Int        @default(0)
+  createdAt      DateTime   @default(now())
+}
+
+model Canoe {
+  id            String         @id @default(cuid())
+  name          String
+  capacity      Int
+  active        Boolean        @default(true)
+  scheduleSlots ScheduleSlotCanoe[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model ScheduleSlot {
+  id            String         @id @default(cuid())
+  experienceId  String
+  experience    Experience     @relation(fields: [experienceId], references: [id])
+  canoeId       String?
+  date          String
+  time          String
+  startsAt      DateTime
+  capacityTotal Int
+  bookedCount   Int            @default(0)
+  status        ScheduleStatus @default(OPEN)
+  blockedReason String?
+  adminNotes    String?
+  meetingPointOverride String?
+  priceOverrideCents   Int?
+  bookingCutoffAt      DateTime?
+  canoes        ScheduleSlotCanoe[]
+  reservations  Reservation[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([experienceId, date, time])
+  @@index([date])
+  @@index([status])
+}
+
+model ScheduleSlotCanoe {
+  id             String       @id @default(cuid())
+  scheduleSlotId String
+  scheduleSlot   ScheduleSlot @relation(fields: [scheduleSlotId], references: [id], onDelete: Cascade)
+  canoeId        String
+  canoe          Canoe        @relation(fields: [canoeId], references: [id])
+  capacity       Int
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+
+  @@unique([scheduleSlotId, canoeId])
+  @@index([canoeId])
+}
+
+model Reservation {
+  id                   String                   @id @default(cuid())
+  code                 String                   @unique
+  experienceId         String
+  experience           Experience               @relation(fields: [experienceId], references: [id])
+  scheduleSlotId        String
+  scheduleSlot          ScheduleSlot             @relation(fields: [scheduleSlotId], references: [id])
+  customerId            String
+  customer              Customer                 @relation(fields: [customerId], references: [id])
+  date                  String
+  time                  String
+  participantsCount     Int
+  unitPriceCents        Int
+  totalCents            Int
+  quotaCost             Int
+  status                ReservationStatus        @default(WAITING_PAYMENT)
+  acceptedTermsVersion  String
+  customerNotes         String?
+  participants          ReservationParticipant[]
+  payment               Payment?
+  cancellationRequests  CancellationRequest[]
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  @@index([date])
+  @@index([status])
+}
+
+model ReservationParticipant {
+  id            String      @id @default(cuid())
+  reservationId String
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  name          String
+  cpf           String?
+  rg            String?
+  birthDate     DateTime?
+  isMinor       Boolean     @default(false)
+  guardianName  String?
+  createdAt     DateTime    @default(now())
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  reservationId     String        @unique
+  reservation       Reservation   @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  provider          String
+  method            String        @default("pix")
+  providerPaymentId String        @unique
+  amountCents       Int
+  status            PaymentStatus @default(PENDING)
+  pixCopyPaste      String?
+  pixQrCodeUrl      String?
+  expiresAt         DateTime?
+  paidAt            DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model CancellationPolicy {
+  id                    String   @id @default(cuid())
+  name                  String
+  freeCancellationHours Int
+  creditUntilHours      Int
+  active                Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model CancellationRequest {
+  id            String                    @id @default(cuid())
+  reservationId String
+  reservation   Reservation               @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  reason        String
+  status        CancellationRequestStatus @default(PENDING)
+  outcome       CancellationOutcome?
+  reviewedAt    DateTime?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  actor       User?    @relation(fields: [actorUserId], references: [id])
+  action      String
+  entityType  String
+  entityId    String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+}

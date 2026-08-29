@@ -1,45 +1,13 @@
-"use client";
-
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { ButtonLink } from "@/components/PrimaryButton";
 import { SiteHeader } from "@/components/SiteHeader";
-import type { Experience } from "@/domain/types";
-import { experienceService } from "@/services/experience-service";
+import { experienceRepository } from "@/server/repositories";
 
-export default function Home() {
-  const [experiences, setExperiences] = useState<Experience[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-
-    experienceService
-      .list()
-      .then((data) => {
-        if (active) {
-          setExperiences(data);
-          setError(null);
-        }
-      })
-      .catch((err: Error) => {
-        if (active) {
-          setError(err.message);
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
+export default async function Home() {
+  const response = await experienceRepository.list();
+  const experiences = response.data ?? [];
 
   return (
     <>
@@ -93,18 +61,18 @@ export default function Home() {
                 <h2 className="mt-2 font-display text-4xl font-bold text-deep">Escolha sua remada</h2>
               </div>
               <p className="max-w-xl text-muted">
-                Remadas de canoa havaiana em Ilhéus, Bahia, Brasil. Experiências guiadas para todos os níveis de habilidade, com duração de 1 a 3 horas, incluindo instruções de segurança e equipamentos.
+                Remadas de canoa havaiana em Ilhéus, Bahia, Brasil. Experiências guiadas para todos os níveis de
+                habilidade, com duração de 1 a 3 horas, incluindo instruções de segurança e equipamentos.
               </p>
             </div>
 
-            {loading ? <StateCard text="Carregando experiências..." /> : null}
-            {error ? <StateCard text={error} tone="error" /> : null}
-            {!loading && !error && experiences.length === 0 ? <StateCard text="Nenhuma experiência ativa encontrada." /> : null}
+            {response.error ? <StateCard text={response.error.message} tone="error" /> : null}
+            {!response.error && experiences.length === 0 ? <StateCard text="Nenhuma experiência ativa encontrada." /> : null}
 
-            {!loading && !error && experiences.length > 0 ? (
+            {!response.error && experiences.length > 0 ? (
               <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                {experiences.map((experience) => (
-                  <ExperienceCard key={experience.id} experience={experience} />
+                {experiences.map((experience, index) => (
+                  <ExperienceCard key={experience.id} experience={experience} priority={index === 0} />
                 ))}
               </div>
             ) : null}
@@ -138,7 +106,11 @@ export default function Home() {
 
 function StateCard({ text, tone = "neutral" }: { text: string; tone?: "neutral" | "error" }) {
   return (
-    <div className={`mt-8 rounded-2xl border p-5 ${tone === "error" ? "border-danger/30 bg-danger/10 text-danger" : "border-line bg-white text-muted"}`}>
+    <div
+      className={`mt-8 rounded-2xl border p-5 ${
+        tone === "error" ? "border-danger/30 bg-danger/10 text-danger" : "border-line bg-white text-muted"
+      }`}
+    >
       {text}
     </div>
   );

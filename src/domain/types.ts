@@ -13,6 +13,17 @@ export type ApiResponse<T> = {
 export type UserRole = "public" | "member" | "admin";
 
 export type ExperienceKind = "regular" | "celebration" | "expedition";
+export type ExperienceScheduleMode = "daily_default" | "manual";
+export type ExperienceBookingChannel = "online" | "request";
+
+export type ExperienceBookingPolicy = {
+  channel: ExperienceBookingChannel;
+  canReserveOnline: boolean;
+  canGenerateDefaultSchedule: boolean;
+  publicLabel: string;
+  adminLabel: string;
+  reason?: string;
+};
 
 export type ExperienceImage = {
   id: string;
@@ -33,6 +44,7 @@ export type Experience = {
   currency: "BRL";
   durationMinutes: number;
   scheduleLabel: string;
+  scheduleMode: ExperienceScheduleMode;
   minParticipants: number;
   maxParticipants: number;
   meetingPoint: string;
@@ -66,30 +78,41 @@ export type AvailabilitySlot = {
   experienceSlug: string;
   date: string;
   time: string;
+  startsAt?: string;
+  canoeId?: string;
+  canoes?: ScheduleSlotCanoe[];
   capacityTotal: number;
   booked: number;
+  occupiedSpots: number;
+  pendingParticipants: number;
   availableSpots: number;
+  minimumParticipants: number;
+  confirmedParticipants: number;
+  remainingToMinimum: number;
+  hasMinimumParticipants: boolean;
   status: AvailabilityStatus;
 };
 
 export type Customer = {
   fullName: string;
-  cpf: string;
-  birthDate: string;
+  rg: string;
+  cpf?: string;
+  birthDate?: string;
   phone: string;
-  email: string;
-  address: string;
-  willParticipate: boolean;
+  email?: string;
+  address?: string;
+  willParticipate?: boolean;
 };
 
 export type Participant = {
   id: string;
   fullName: string;
-  cpf: string;
-  birthDate: string;
-  phone: string;
-  emergencyContactName: string;
-  emergencyContactPhone: string;
+  rg: string;
+  cpf?: string;
+  birthDate?: string;
+  phone?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
   legalGuardian?: {
     fullName: string;
     cpf: string;
@@ -114,6 +137,7 @@ export type Payment = {
 
 export type ReservationDraft = {
   experienceSlug: string;
+  scheduleSlotId?: string;
   date: string;
   time: string;
   participantsCount: number;
@@ -130,6 +154,7 @@ export type ReservationQuote = {
   totalCents: number;
   currency: "BRL";
   quotaCost: number;
+  minimumParticipantsToRun: number;
   valid: boolean;
   errors: ApiError[];
 };
@@ -199,7 +224,108 @@ export type Canoe = {
   id: string;
   name: string;
   capacity: number;
+  isActive: boolean;
   status: "available" | "reserved" | "in_use" | "maintenance" | "unavailable";
+};
+
+export type CreateCanoeInput = {
+  name: string;
+  capacity: number;
+  isActive: boolean;
+};
+
+export type UpdateCanoeInput = Partial<CreateCanoeInput>;
+
+export type MutationResult = {
+  id: string;
+  deleted: boolean;
+};
+
+export type ScheduleSlotCanoe = {
+  id: string;
+  canoeId: string;
+  canoeName: string;
+  capacity: number;
+};
+
+export type ScheduleSlotCanoeInput = {
+  canoeId: string;
+  capacity: number;
+};
+
+export type ScheduleSlot = Omit<AvailabilitySlot, "status"> & {
+  experienceName: string;
+  status: AvailabilityStatus | "blocked" | "cancelled";
+  blockedReason?: string;
+  adminNotes?: string;
+  meetingPointOverride?: string;
+  priceOverrideCents?: number;
+  bookingCutoffAt?: string;
+};
+
+export type CreateScheduleSlotInput = {
+  experienceSlug: string;
+  date: string;
+  time: string;
+  capacityTotal?: number;
+  canoeId?: string;
+  canoes?: ScheduleSlotCanoeInput[];
+  blockedReason?: string;
+  adminNotes?: string;
+  meetingPointOverride?: string;
+  priceOverrideCents?: number;
+  bookingCutoffAt?: string;
+};
+
+export type CreateExperienceInput = {
+  name: string;
+  slug: string;
+  kind: ExperienceKind;
+  shortDescription: string;
+  description: string;
+  priceCents: number;
+  durationMinutes: number;
+  scheduleLabel: string;
+  scheduleMode: ExperienceScheduleMode;
+  meetingPoint: string;
+  difficulty: Experience["difficulty"];
+  quotaCost: number;
+  imageClass: string;
+  availableTimes: string[];
+  includedItems: string[];
+  guidance: string[];
+  safetyNotes: string[];
+  minParticipants: number;
+  maxParticipants: number;
+  isActive: boolean;
+};
+
+export type UpdateExperienceInput = Partial<CreateExperienceInput>;
+
+export type GenerateScheduleInput = {
+  experienceSlug: string;
+  startDate: string;
+  daysAhead: number;
+  canoes?: ScheduleSlotCanoeInput[];
+};
+
+export type GenerateScheduleResult = {
+  created: number;
+  skipped: number;
+  slots: ScheduleSlot[];
+};
+
+export type UpdateScheduleSlotInput = {
+  status?: "open" | "blocked" | "cancelled";
+  date?: string;
+  time?: string;
+  capacityTotal?: number;
+  canoes?: ScheduleSlotCanoeInput[];
+  blockedReason?: string | null;
+  adminNotes?: string | null;
+  meetingPointOverride?: string | null;
+  priceOverrideCents?: number | null;
+  bookingCutoffAt?: string | null;
 };
 
 export type TermVersion = {
@@ -229,6 +355,14 @@ export type Cancellation = {
   outcome: "refund" | "credit" | "denied" | "pending";
 };
 
+export type CancellationPolicy = {
+  id: string;
+  name: string;
+  freeCancellationHours: number;
+  creditUntilHours: number;
+  active: boolean;
+};
+
 export type AdminPermission = "reservations" | "finance" | "members";
 
 export type AdminUser = {
@@ -236,6 +370,37 @@ export type AdminUser = {
   name: string;
   role: "admin" | "instructor" | "support";
   permissions: Record<AdminPermission, boolean>;
+};
+
+export type AdminDashboardMode = "today" | "week";
+
+export type AdminDashboardMetrics = {
+  pendingReservations: number;
+  confirmedParticipants: number;
+  availableSpots: number;
+  activeReservations: number;
+  confirmedRevenueCents: number;
+};
+
+export type AdminDashboardDay = {
+  date: string;
+  slots: ScheduleSlot[];
+  reservations: Reservation[];
+  pendingReservations: number;
+  confirmedParticipants: number;
+  availableSpots: number;
+  activeReservations: number;
+  confirmedRevenueCents: number;
+};
+
+export type AdminDashboardOverview = {
+  mode: AdminDashboardMode;
+  startDate: string;
+  endDate: string;
+  metrics: AdminDashboardMetrics;
+  days: AdminDashboardDay[];
+  schedule: ScheduleSlot[];
+  reservations: Reservation[];
 };
 
 export type AdminOverview = {
@@ -246,5 +411,7 @@ export type AdminOverview = {
   pendingPayments: number;
   activeMembers: number;
   confirmations: Reservation[];
+  schedule: ScheduleSlot[];
+  experiences: Experience[];
   users: AdminUser[];
 };
