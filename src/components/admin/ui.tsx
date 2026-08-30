@@ -20,15 +20,38 @@ export function PageHeader({ eyebrow, title, description, action }: PageHeaderPr
   );
 }
 
-export function MetricCard({ label, value, detail, icon }: { label: string; value: ReactNode; detail?: string; icon: ReactNode }) {
+export function MetricCard({
+  label,
+  value,
+  detail,
+  icon,
+}: {
+  label: string;
+  value: ReactNode;
+  detail?: string;
+  icon: ReactNode;
+}) {
   return (
-    <article className="rounded-2xl border border-line bg-white p-5 deep-shadow">
-      <div className="flex items-start justify-between gap-4">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-turquoise/14 text-deep">{icon}</span>
-        <p className="break-words text-right font-display text-3xl font-bold text-deep">{value}</p>
+    <article className="min-w-0 rounded-2xl border border-line bg-white p-5 deep-shadow">
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-turquoise/14 text-deep">
+          {icon}
+        </span>
+
+        <p className="min-w-0 text-right font-display text-xl font-bold text-deep sm:text-2xl 2xl:text-3xl">
+          {value}
+        </p>
       </div>
-      <p className="mt-4 font-mono text-xs font-bold uppercase tracking-[0.14em] text-muted">{label}</p>
-      {detail ? <p className="mt-1 text-sm text-muted">{detail}</p> : null}
+
+      <p className="mt-4 font-mono text-xs font-bold uppercase tracking-[0.14em] text-muted">
+        {label}
+      </p>
+
+      {detail ? (
+        <p className="mt-1 text-sm text-muted">
+          {detail}
+        </p>
+      ) : null}
     </article>
   );
 }

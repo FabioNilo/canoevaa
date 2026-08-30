@@ -12,7 +12,7 @@ export default async function AdminPasseiosPage() {
   if (!experiences.data || !canoes.data || !schedule.data) {
     return (
       <EmptyState
-        title="Passeios indisponiveis"
+        title="Passeios indisponíveis"
         description={experiences.error?.message ?? canoes.error?.message ?? schedule.error?.message ?? "Nao foi possivel carregar os dados."}
       />
     );

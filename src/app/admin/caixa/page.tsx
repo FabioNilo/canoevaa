@@ -32,10 +32,10 @@ export default async function AdminCaixaPage() {
       <PageHeader
         eyebrow="Caixa"
         title="Fluxo de caixa"
-        description="Receitas derivadas das reservas atuais. Lancamentos manuais entram na fase financeira."
+        description="Receitas derivadas das reservas atuais. Lançamentos manuais entram na fase financeira."
       />
 
-      <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="mt-8 grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <MetricCard icon={<TrendingUp size={24} />} label="Receita confirmada" value={centsToCurrency(confirmedRevenueCents)} />
         <MetricCard icon={<Clock size={24} />} label="Receita pendente" value={centsToCurrency(pendingRevenueCents)} />
         <MetricCard icon={<TrendingDown size={24} />} label="Saidas" value={centsToCurrency(0)} />
@@ -44,7 +44,7 @@ export default async function AdminCaixaPage() {
 
       <section className="mt-8 rounded-[28px] border border-line bg-white p-5 deep-shadow sm:p-6">
         <div>
-          <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-ocean">Movimentacoes</p>
+          <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-ocean">Movimentaçoes</p>
           <h3 className="mt-1 font-display text-2xl font-bold text-deep">Reservas com valor financeiro</h3>
         </div>
         <div className="mt-6 grid gap-3">

@@ -48,3 +48,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const response = await adminRepository.updateScheduleSlot(id, parsed.data);
   return NextResponse.json(response, { status: response.error ? 404 : 200 });
 }
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const unauthorized = await requireAdminResponse();
+
+  if (unauthorized) {
+    return NextResponse.json(unauthorized, { status: 401 });
+  }
+
+  const { id } = await params;
+  const response = await adminRepository.deleteScheduleSlot(id);
+  return NextResponse.json(response, { status: response.error ? 400 : 200 });
+}

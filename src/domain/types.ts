@@ -220,6 +220,114 @@ export type MemberDashboard = {
   nextReservation: Reservation | null;
 };
 
+export type MembershipStatus = "active" | "past_due" | "suspended" | "cancelled";
+
+export type QuotaPeriod = "weekly" | "monthly";
+
+export type QuotaMovementType = "grant" | "debit" | "refund" | "adjustment" | "expire";
+
+export type MembershipPaymentStatus = "pending" | "paid" | "expired" | "refunded" | "cancelled";
+
+export type AdminMembershipPlan = {
+  id: string;
+  name: string;
+  slug: string;
+  priceCents: number;
+  quotaAllowance: number;
+  quotaPeriod: QuotaPeriod;
+  active: boolean;
+};
+
+export type AdminMembershipListItem = {
+  id: string;
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  plan: AdminMembershipPlan;
+  status: MembershipStatus;
+  startedAt: string;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  nextDueAt: string;
+  quotaBalance: number;
+  quotaUsedInPeriod: number;
+  openPaymentsCount: number;
+};
+
+export type AdminQuotaMovement = {
+  id: string;
+  type: QuotaMovementType;
+  amount: number;
+  reason?: string;
+  reservationCode?: string;
+  periodStart?: string;
+  periodEnd?: string;
+  createdAt: string;
+};
+
+export type AdminMembershipPayment = {
+  id: string;
+  amountCents: number;
+  status: MembershipPaymentStatus;
+  periodStart: string;
+  periodEnd: string;
+  dueAt: string;
+  paidAt?: string;
+};
+
+export type AdminMembershipCustomer = {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  cpf?: string;
+  rg?: string;
+  birthDate?: string;
+  addressLine?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+};
+
+export type AdminMembershipDetail = AdminMembershipListItem & {
+  customer: AdminMembershipCustomer;
+  quotaMovements: AdminQuotaMovement[];
+  payments: AdminMembershipPayment[];
+};
+
+export type MembershipCustomerInput = {
+  name: string;
+  phone: string;
+  email?: string;
+  cpf?: string;
+  rg?: string;
+  birthDate?: string;
+  addressLine?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+};
+
+export type CreateMembershipInput = {
+  planId: string;
+  startedAt?: string;
+  customerId?: string;
+  customer?: MembershipCustomerInput;
+};
+
+export type UpdateMembershipInput = {
+  planId?: string;
+  startedAt?: string;
+  status?: MembershipStatus;
+  customer?: Partial<MembershipCustomerInput>;
+};
+
+export type AdjustMembershipQuotaInput = {
+  amount: number;
+  reason: string;
+};
+
 export type Canoe = {
   id: string;
   name: string;
@@ -370,6 +478,31 @@ export type AdminUser = {
   name: string;
   role: "admin" | "instructor" | "support";
   permissions: Record<AdminPermission, boolean>;
+};
+
+export type AdminCustomerReservation = {
+  id: string;
+  code: string;
+  experienceName: string;
+  date: string;
+  time: string;
+  participantsCount: number;
+  status: ReservationStatus;
+  totalCents: number;
+  createdAt: string;
+};
+
+export type AdminCustomer = {
+  id: string;
+  name: string;
+  email?: string;
+  phone: string;
+  cpf?: string;
+  rg?: string;
+  totalReservations: number;
+  lastReservation?: AdminCustomerReservation;
+  nextReservation?: AdminCustomerReservation;
+  reservations: AdminCustomerReservation[];
 };
 
 export type AdminDashboardMode = "today" | "week";

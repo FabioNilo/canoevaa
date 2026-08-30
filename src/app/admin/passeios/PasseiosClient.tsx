@@ -1,15 +1,28 @@
 "use client";
 
-import { CalendarDays, Copy, Pencil, Plus, Power, Save, Trash2, Waves } from "lucide-react";
-import type { FormEvent } from "react";
+import { CalendarDays, Copy, Pencil, Plus, Power, Save, Trash2, XCircle } from "lucide-react";
+import type { FormEvent, ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { EmptyState, PageHeader, StatusBadge } from "@/components/admin/ui";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { centsToCurrency, getExperienceBookingPolicy } from "@/domain/rules";
-import type { Canoe, CreateCanoeInput, CreateExperienceInput, Experience, ScheduleSlot, UpdateCanoeInput } from "@/domain/types";
+import type {
+  Canoe,
+  CreateCanoeInput,
+  CreateExperienceInput,
+  CreateScheduleSlotInput,
+  Experience,
+  ScheduleSlot,
+  ScheduleSlotCanoeInput,
+  UpdateCanoeInput,
+} from "@/domain/types";
 import { adminService } from "@/services/admin-service";
 
 type TabId = "experiences" | "canoes" | "schedule";
+type ScheduleForm = Omit<CreateScheduleSlotInput, "capacityTotal" | "canoes"> & {
+  capacityTotal: number;
+  canoes: ScheduleSlotCanoeInput[];
+};
 
 const tabs: Array<{ id: TabId; label: string }> = [
   { id: "experiences", label: "Passeios" },
@@ -23,6 +36,42 @@ function csvToList(value: string) {
 
 function listToCsv(value: string[]) {
   return value.join(", ");
+}
+
+function todayInputValue() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function sortSchedule(slots: ScheduleSlot[]) {
+  return [...slots].sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
+}
+
+function scheduleTone(status: ScheduleSlot["status"]) {
+  if (status === "available") return "success";
+  if (status === "low") return "warning";
+  if (status === "full" || status === "blocked") return "danger";
+  return "neutral";
+}
+
+function createBlankScheduleForm(experiences: Experience[], canoes: Canoe[]): ScheduleForm {
+  const experience = experiences[0];
+  const selectedCanoes = canoes
+    .filter((canoe) => canoe.isActive)
+    .slice(0, 2)
+    .map((canoe) => ({ canoeId: canoe.id, capacity: canoe.capacity }));
+  const capacityTotal = selectedCanoes.reduce((total, canoe) => total + canoe.capacity, 0) || experience?.maxParticipants || 10;
+
+  return {
+    experienceSlug: experience?.slug ?? "",
+    date: todayInputValue(),
+    time: experience?.availableTimes[0] ?? "16:30",
+    capacityTotal,
+    canoes: [
+      selectedCanoes[0] ?? { canoeId: "", capacity: capacityTotal },
+      selectedCanoes[1] ?? { canoeId: "", capacity: 0 },
+    ],
+    adminNotes: "",
+  };
 }
 
 function createBlankExperienceForm(): CreateExperienceInput {
@@ -100,7 +149,8 @@ export function PasseiosClient({
   const [activeTab, setActiveTab] = useState<TabId>("experiences");
   const [experiences, setExperiences] = useState(initialExperiences);
   const [canoes, setCanoes] = useState(initialCanoes);
-  const [schedule] = useState(initialSchedule);
+  const [schedule, setSchedule] = useState(() => sortSchedule(initialSchedule));
+  const [scheduleForm, setScheduleForm] = useState<ScheduleForm>(() => createBlankScheduleForm(initialExperiences, initialCanoes));
   const [editingExperienceId, setEditingExperienceId] = useState<string | null>(null);
   const [experienceForm, setExperienceForm] = useState<CreateExperienceInput>(createBlankExperienceForm);
   const [canoeForm, setCanoeForm] = useState<CreateCanoeInput>({ name: "", capacity: 5, isActive: true });
@@ -114,6 +164,11 @@ export function PasseiosClient({
   );
 
   const activeCanoes = canoes.filter((canoe) => canoe.isActive);
+  const currentScheduleExperience = experiences.find((experience) => experience.slug === scheduleForm.experienceSlug) ?? experiences[0] ?? null;
+  const selectedScheduleCanoes = scheduleForm.canoes.filter((canoe) => canoe.canoeId && canoe.capacity > 0);
+  const scheduleCapacityTotal = selectedScheduleCanoes.length > 0
+    ? selectedScheduleCanoes.reduce((total, canoe) => total + canoe.capacity, 0)
+    : scheduleForm.capacityTotal;
 
   function beginCreateExperience() {
     setEditingExperienceId("new");
@@ -262,12 +317,116 @@ export function PasseiosClient({
     }
   }
 
+  function updateScheduleExperience(slug: string) {
+    const experience = experiences.find((item) => item.slug === slug);
+    setScheduleForm((form) => ({
+      ...form,
+      experienceSlug: slug,
+      time: experience?.availableTimes[0] ?? form.time,
+    }));
+  }
+
+  function updateScheduleCanoe(index: number, canoeId: string) {
+    const canoe = activeCanoes.find((item) => item.id === canoeId);
+    setScheduleForm((form) => ({
+      ...form,
+      canoes: form.canoes.map((item, itemIndex) =>
+        itemIndex === index ? { canoeId, capacity: canoe?.capacity ?? item.capacity } : item,
+      ),
+    }));
+  }
+
+  function updateScheduleCanoeCapacity(index: number, capacity: number) {
+    setScheduleForm((form) => ({
+      ...form,
+      canoes: form.canoes.map((item, itemIndex) => (itemIndex === index ? { ...item, capacity } : item)),
+    }));
+  }
+
+  async function createScheduleSlot(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSavingId("schedule_new");
+    setError(null);
+    setNotice(null);
+
+    try {
+      const created = await adminService.createScheduleSlot({
+        ...scheduleForm,
+        capacityTotal: scheduleCapacityTotal,
+        canoes: selectedScheduleCanoes.length > 0 ? selectedScheduleCanoes : undefined,
+      });
+      setSchedule((current) => sortSchedule([...current, created]));
+      setScheduleForm((form) => ({ ...form, adminNotes: "" }));
+      setNotice("Horario criado.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nao foi possivel criar o horario.");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  async function toggleScheduleSlot(slot: ScheduleSlot) {
+    setSavingId(slot.id);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const updated = await adminService.updateScheduleSlot(slot.id, {
+        status: slot.status === "blocked" ? "open" : "blocked",
+      });
+      setSchedule((current) => sortSchedule(current.map((item) => (item.id === updated.id ? updated : item))));
+      setNotice(updated.status === "blocked" ? "Horario bloqueado." : "Horario liberado.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nao foi possivel alterar o horario.");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  async function cancelScheduleSlot(slot: ScheduleSlot) {
+    const confirmed = window.confirm(`Cancelar ${slot.date} ${slot.time}? Reservas existentes permanecem no historico.`);
+    if (!confirmed) return;
+
+    setSavingId(`cancel_${slot.id}`);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const updated = await adminService.updateScheduleSlot(slot.id, { status: "cancelled" });
+      setSchedule((current) => sortSchedule(current.map((item) => (item.id === updated.id ? updated : item))));
+      setNotice("Horario cancelado.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nao foi possivel cancelar o horario.");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  async function deleteScheduleSlot(slot: ScheduleSlot) {
+    const confirmed = window.confirm(`Excluir ${slot.date} ${slot.time}? Somente horarios sem reservas podem ser apagados.`);
+    if (!confirmed) return;
+
+    setSavingId(`delete_${slot.id}`);
+    setError(null);
+    setNotice(null);
+
+    try {
+      await adminService.deleteScheduleSlot(slot.id);
+      setSchedule((current) => current.filter((item) => item.id !== slot.id));
+      setNotice("Horario excluido.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nao foi possivel excluir o horario.");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
   return (
     <div>
       <PageHeader
         eyebrow="Passeios"
         title="Passeios, canoas e agenda"
-        description="Gerencie os produtos vendidos, a frota disponivel e os horarios criados."
+        description="Gerencie os produtos vendidos, a frota disponível e os horários criados."
         action={
           <div className="inline-flex rounded-2xl border border-line bg-white p-1">
             {tabs.map((tab) => (
@@ -413,15 +572,73 @@ export function PasseiosClient({
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-ocean">Agenda</p>
-              <h3 className="mt-1 font-display text-2xl font-bold text-deep">Horarios criados</h3>
+              <h3 className="mt-1 font-display text-2xl font-bold text-deep">horários criados</h3>
             </div>
             <StatusBadge tone="info">{schedule.length} slot(s)</StatusBadge>
           </div>
+          <form className="mt-6 rounded-2xl border border-line bg-surface p-4" onSubmit={createScheduleSlot}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-ocean">Novo horario</p>
+                <h4 className="mt-1 font-display text-xl font-bold text-deep">Agendar passeio</h4>
+              </div>
+              <CalendarDays className="text-turquoise" size={26} />
+            </div>
+            <div className="mt-4 grid gap-3 lg:grid-cols-4">
+              <Select
+                label="Passeio"
+                value={scheduleForm.experienceSlug}
+                options={experiences.map((experience) => ({ value: experience.slug, label: experience.name }))}
+                onChange={updateScheduleExperience}
+              />
+              <Input label="Data" type="date" value={scheduleForm.date} onChange={(value) => setScheduleForm((form) => ({ ...form, date: value }))} />
+              <Input label="Hora" type="time" value={scheduleForm.time} onChange={(value) => setScheduleForm((form) => ({ ...form, time: value }))} />
+              <Input
+                label="Capacidade manual"
+                type="number"
+                value={String(scheduleForm.capacityTotal)}
+                onChange={(value) => setScheduleForm((form) => ({ ...form, capacityTotal: Number(value) }))}
+              />
+            </div>
+            <div className="mt-4 grid gap-3 lg:grid-cols-2">
+              {scheduleForm.canoes.map((slotCanoe, index) => (
+                <div key={index} className="grid gap-2 sm:grid-cols-[1fr_120px]">
+                  <Select
+                    label={`Canoa ${index + 1}`}
+                    value={slotCanoe.canoeId}
+                    options={[
+                      { value: "", label: "Sem canoa" },
+                      ...activeCanoes.map((canoe) => ({ value: canoe.id, label: canoe.name })),
+                    ]}
+                    onChange={(value) => updateScheduleCanoe(index, value)}
+                  />
+                  <Input
+                    label="Vagas"
+                    type="number"
+                    value={String(slotCanoe.capacity)}
+                    onChange={(value) => updateScheduleCanoeCapacity(index, Number(value))}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto_auto] lg:items-end">
+              <Input
+                label="Observacao admin"
+                value={scheduleForm.adminNotes ?? ""}
+                onChange={(value) => setScheduleForm((form) => ({ ...form, adminNotes: value }))}
+              />
+              <StatusBadge tone="info">{scheduleCapacityTotal} vaga(s)</StatusBadge>
+              <PrimaryButton type="submit" disabled={savingId === "schedule_new" || !currentScheduleExperience}>
+                <Plus size={16} />
+                Criar horario
+              </PrimaryButton>
+            </div>
+          </form>
           <div className="mt-6 grid gap-3">
             {schedule.length > 0 ? (
               schedule.map((slot) => (
                 <article key={slot.id} className="rounded-2xl border border-line bg-surface p-4">
-                  <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] md:items-center">
+                  <div className="grid gap-4 lg:grid-cols-[1fr_auto_auto] lg:items-center">
                     <div>
                       <p className="font-display text-lg font-bold text-deep">
                         {slot.date} - {slot.time} - {slot.experienceName}
@@ -429,14 +646,36 @@ export function PasseiosClient({
                       <p className="mt-1 text-sm text-muted">
                         {slot.confirmedParticipants} confirmado(s), {slot.pendingParticipants} pendente(s), {slot.availableSpots} vaga(s)
                       </p>
+                      {slot.adminNotes ? <p className="mt-1 text-xs font-semibold text-muted">{slot.adminNotes}</p> : null}
                     </div>
-                    <p className="text-sm font-bold text-deep">{slot.capacityTotal} capacidade</p>
-                    <StatusBadge tone={slot.status === "available" ? "success" : slot.status === "low" ? "warning" : "neutral"}>{slot.status}</StatusBadge>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-bold text-deep">{slot.capacityTotal} capacidade</p>
+                      <StatusBadge tone={scheduleTone(slot.status)}>{slot.status}</StatusBadge>
+                    </div>
+                    <div className="flex gap-2">
+                      <IconButton
+                        label={slot.status === "blocked" ? "Liberar" : "Bloquear"}
+                        disabled={savingId === slot.id || slot.status === "cancelled"}
+                        onClick={() => toggleScheduleSlot(slot)}
+                      >
+                        <Power size={16} />
+                      </IconButton>
+                      <IconButton
+                        label="Cancelar"
+                        disabled={savingId === `cancel_${slot.id}` || slot.status === "cancelled"}
+                        onClick={() => cancelScheduleSlot(slot)}
+                      >
+                        <XCircle size={16} />
+                      </IconButton>
+                      <IconButton label="Excluir" disabled={savingId === `delete_${slot.id}`} onClick={() => deleteScheduleSlot(slot)}>
+                        <Trash2 size={16} />
+                      </IconButton>
+                    </div>
                   </div>
                 </article>
               ))
             ) : (
-              <EmptyState title="Nenhum horario" description="Ainda nao ha horarios futuros cadastrados." />
+              <EmptyState title="Nenhum horário" description="Ainda nao ha horários futuros cadastrados." />
             )}
           </div>
         </section>
@@ -464,11 +703,11 @@ function ExperienceFormPanel({
 }) {
   return (
     <form className="rounded-[28px] border border-line bg-white p-5 deep-shadow sm:p-6" onSubmit={onSubmit}>
-      <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-ocean">Edicao</p>
+      <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-ocean">Edição</p>
       <h3 className="mt-1 font-display text-2xl font-bold text-deep">{title}</h3>
       {disabled ? (
         <div className="mt-5">
-          <EmptyState title="Nenhum formulario aberto" description="Use criar ou editar para alterar um passeio." />
+          <EmptyState title="Nenhum formulário aberto" description="Use criar ou editar para alterar um passeio." />
         </div>
       ) : (
         <div className="mt-5 grid gap-3">
@@ -480,7 +719,7 @@ function ExperienceFormPanel({
             options={[
               { value: "regular", label: "Regular" },
               { value: "celebration", label: "Comemoracao" },
-              { value: "expedition", label: "Expedicao" },
+              { value: "expedition", label: "Expediçao" },
             ]}
             onChange={(value) =>
               onChange({
@@ -511,8 +750,8 @@ function ExperienceFormPanel({
             <Input label="Minimo" type="number" value={String(draft.minParticipants)} onChange={(value) => onChange({ ...draft, minParticipants: Number(value) })} />
             <Input label="Maximo" type="number" value={String(draft.maxParticipants)} onChange={(value) => onChange({ ...draft, maxParticipants: Number(value) })} />
           </div>
-          <Input label="Rotulo de horario" value={draft.scheduleLabel} onChange={(value) => onChange({ ...draft, scheduleLabel: value })} />
-          <Input label="Horarios sugeridos" value={listToCsv(draft.availableTimes)} onChange={(value) => onChange({ ...draft, availableTimes: csvToList(value) })} />
+          <Input label="Rotulo de horário" value={draft.scheduleLabel} onChange={(value) => onChange({ ...draft, scheduleLabel: value })} />
+          <Input label="horários sugeridos" value={listToCsv(draft.availableTimes)} onChange={(value) => onChange({ ...draft, availableTimes: csvToList(value) })} />
           <Input label="Ponto de encontro" value={draft.meetingPoint} onChange={(value) => onChange({ ...draft, meetingPoint: value })} />
           <Select
             label="Dificuldade"
@@ -601,7 +840,7 @@ function IconButton({
   label: string;
   disabled?: boolean;
   onClick: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <button

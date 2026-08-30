@@ -5,6 +5,8 @@ import { ButtonLink } from "@/components/PrimaryButton";
 import { SiteHeader } from "@/components/SiteHeader";
 import { experienceRepository } from "@/server/repositories";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const response = await experienceRepository.list();
   const experiences = response.data ?? [];

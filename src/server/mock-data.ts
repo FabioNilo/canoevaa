@@ -1,4 +1,6 @@
 import type {
+  AdminMembershipDetail,
+  AdminMembershipPlan,
   AdminOverview,
   AdminUser,
   AvailabilitySlot,
@@ -428,6 +430,108 @@ export const memberDashboard: MemberDashboard = {
   ],
   nextReservation: reservations[1],
 };
+
+export const membershipPlans: AdminMembershipPlan[] = [
+  {
+    id: "plan_aloha",
+    name: "Plano Aloha",
+    slug: "aloha",
+    priceCents: 15000,
+    quotaAllowance: 3,
+    quotaPeriod: "weekly",
+    active: true,
+  },
+  {
+    id: "plan_kai",
+    name: "Plano Kai",
+    slug: "kai",
+    priceCents: 24000,
+    quotaAllowance: 6,
+    quotaPeriod: "weekly",
+    active: true,
+  },
+];
+
+export const adminMemberships: AdminMembershipDetail[] = [
+  {
+    id: "membership_1",
+    customerId: "customer_1",
+    customerName: "Fabio Nilo",
+    customerPhone: "(73) 99999-0001",
+    customerEmail: "fabio@example.com",
+    customer: {
+      id: "customer_1",
+      name: "Fabio Nilo",
+      phone: "(73) 99999-0001",
+      email: "fabio@example.com",
+      cpf: "123.456.789-00",
+      rg: "MG-12.345.678",
+      birthDate: "1990-04-12",
+      addressLine: "Rua das Palmeiras, 45",
+      city: "Ilheus",
+      state: "BA",
+      zipCode: "45650-000",
+    },
+    plan: membershipPlans[0],
+    status: "active",
+    startedAt: "2026-06-01T00:00:00.000Z",
+    currentPeriodStart: "2026-08-24T00:00:00.000Z",
+    currentPeriodEnd: "2026-08-31T00:00:00.000Z",
+    nextDueAt: "2026-09-01T00:00:00.000Z",
+    quotaBalance: 2,
+    quotaUsedInPeriod: 1,
+    openPaymentsCount: 0,
+    quotaMovements: [
+      { id: "qmov_1", type: "grant", amount: 3, reason: "Renovacao semanal", createdAt: "2026-08-24T00:00:00.000Z" },
+      { id: "qmov_2", type: "debit", amount: -1, reservationCode: "ICV-1821", createdAt: "2026-08-26T12:00:00.000Z" },
+    ],
+    payments: [
+      {
+        id: "mpay_1",
+        amountCents: 15000,
+        status: "paid",
+        periodStart: "2026-08-01T00:00:00.000Z",
+        periodEnd: "2026-08-31T00:00:00.000Z",
+        dueAt: "2026-08-01T00:00:00.000Z",
+        paidAt: "2026-07-31T00:00:00.000Z",
+      },
+    ],
+  },
+  {
+    id: "membership_2",
+    customerId: "customer_2",
+    customerName: "Marina Costa",
+    customerPhone: "(73) 99999-0002",
+    customer: {
+      id: "customer_2",
+      name: "Marina Costa",
+      phone: "(73) 99999-0002",
+      cpf: "987.654.321-00",
+    },
+    plan: membershipPlans[1],
+    status: "past_due",
+    startedAt: "2026-05-15T00:00:00.000Z",
+    currentPeriodStart: "2026-08-24T00:00:00.000Z",
+    currentPeriodEnd: "2026-08-31T00:00:00.000Z",
+    nextDueAt: "2026-08-15T00:00:00.000Z",
+    quotaBalance: 6,
+    quotaUsedInPeriod: 0,
+    openPaymentsCount: 1,
+    quotaMovements: [
+      { id: "qmov_3", type: "grant", amount: 6, reason: "Renovacao semanal", createdAt: "2026-08-24T00:00:00.000Z" },
+    ],
+    payments: [
+      {
+        id: "mpay_2",
+        amountCents: 24000,
+        status: "pending",
+        periodStart: "2026-08-15T00:00:00.000Z",
+        periodEnd: "2026-09-14T00:00:00.000Z",
+        dueAt: "2026-08-15T00:00:00.000Z",
+      },
+    ],
+  },
+];
 
 export const adminOverview: AdminOverview = {
   reservationsToday: 2,

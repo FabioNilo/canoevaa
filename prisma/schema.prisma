@@ -64,6 +64,27 @@ enum CancellationOutcome {
   DENIED
 }
 
+// Domínio de associados
+enum MembershipStatus {
+  ACTIVE
+  PAST_DUE
+  SUSPENDED
+  CANCELLED
+}
+
+enum QuotaPeriod {
+  WEEKLY
+  MONTHLY
+}
+
+enum QuotaTransactionType {
+  GRANT
+  DEBIT
+  REFUND
+  ADJUSTMENT
+  EXPIRE
+}
+
 model User {
   id           String     @id @default(cuid())
   name         String
@@ -93,6 +114,7 @@ model Customer {
   state        String?
   zipCode      String?
   reservations Reservation[]
+  membership   Membership?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -100,32 +122,32 @@ model Customer {
 }
 
 model Experience {
-  id                 String              @id @default(cuid())
-  name               String
-  slug               String              @unique
-  kind               ExperienceKind      @default(REGULAR)
-  description        String
-  shortDescription   String
-  priceCents         Int
-  durationMinutes    Int
-  scheduleLabel      String
-  scheduleMode       ExperienceScheduleMode @default(DAILY_DEFAULT)
-  meetingPoint       String
-  difficulty         String
-  imageClass         String
-  availableTimes     String[]
-  includedItems      String[]
-  guidance           String[]
-  safetyNotes        String[]
-  minimumParticipants Int                 @default(4)
-  maximumParticipants Int                 @default(25)
-  quotaCost          Int                 @default(1)
-  status             ExperienceStatus    @default(ACTIVE)
-  images             ExperienceImage[]
-  scheduleSlots      ScheduleSlot[]
-  reservations       Reservation[]
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  id                  String                 @id @default(cuid())
+  name                String
+  slug                String                 @unique
+  kind                ExperienceKind         @default(REGULAR)
+  description         String
+  shortDescription    String
+  priceCents          Int
+  durationMinutes     Int
+  scheduleLabel       String
+  scheduleMode        ExperienceScheduleMode @default(DAILY_DEFAULT)
+  meetingPoint        String
+  difficulty          String
+  imageClass          String
+  availableTimes      String[]
+  includedItems       String[]
+  guidance            String[]
+  safetyNotes         String[]
+  minimumParticipants Int                    @default(4)
+  maximumParticipants Int                    @default(25)
+  quotaCost           Int                    @default(1)
+  status              ExperienceStatus       @default(ACTIVE)
+  images              ExperienceImage[]
+  scheduleSlots       ScheduleSlot[]
+  reservations        Reservation[]
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
 }
 
 model ExperienceImage {
@@ -141,35 +163,37 @@ model ExperienceImage {
 }
 
 model Canoe {
-  id            String         @id @default(cuid())
-  name          String
-  capacity      Int
-  active        Boolean        @default(true)
-  scheduleSlots ScheduleSlotCanoe[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                   String              @id @default(cuid())
+  name                 String
+  capacity             Int
+  active               Boolean             @default(true)
+  scheduleSlots        ScheduleSlotCanoe[]
+  primaryScheduleSlots ScheduleSlot[]
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 }
 
 model ScheduleSlot {
-  id            String         @id @default(cuid())
-  experienceId  String
-  experience    Experience     @relation(fields: [experienceId], references: [id])
-  canoeId       String?
-  date          String
-  time          String
-  startsAt      DateTime
-  capacityTotal Int
-  bookedCount   Int            @default(0)
-  status        ScheduleStatus @default(OPEN)
-  blockedReason String?
-  adminNotes    String?
+  id                   String              @id @default(cuid())
+  experienceId         String
+  experience           Experience          @relation(fields: [experienceId], references: [id])
+  canoeId              String?
+  canoe                Canoe?              @relation(fields: [canoeId], references: [id])
+  date                 String
+  time                 String
+  startsAt             DateTime
+  capacityTotal        Int
+  bookedCount          Int                 @default(0)
+  status               ScheduleStatus      @default(OPEN)
+  blockedReason        String?
+  adminNotes           String?
   meetingPointOverride String?
   priceOverrideCents   Int?
   bookingCutoffAt      DateTime?
-  canoes        ScheduleSlotCanoe[]
-  reservations  Reservation[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  canoes               ScheduleSlotCanoe[]
+  reservations         Reservation[]
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 
   @@unique([experienceId, date, time])
   @@index([date])
@@ -195,27 +219,31 @@ model Reservation {
   code                 String                   @unique
   experienceId         String
   experience           Experience               @relation(fields: [experienceId], references: [id])
-  scheduleSlotId        String
-  scheduleSlot          ScheduleSlot             @relation(fields: [scheduleSlotId], references: [id])
-  customerId            String
-  customer              Customer                 @relation(fields: [customerId], references: [id])
-  date                  String
-  time                  String
-  participantsCount     Int
-  unitPriceCents        Int
-  totalCents            Int
-  quotaCost             Int
-  status                ReservationStatus        @default(WAITING_PAYMENT)
-  acceptedTermsVersion  String
-  customerNotes         String?
-  participants          ReservationParticipant[]
-  payment               Payment?
-  cancellationRequests  CancellationRequest[]
-  createdAt             DateTime                 @default(now())
-  updatedAt             DateTime                 @updatedAt
+  scheduleSlotId       String
+  scheduleSlot         ScheduleSlot             @relation(fields: [scheduleSlotId], references: [id])
+  customerId           String
+  customer             Customer                 @relation(fields: [customerId], references: [id])
+  membershipId         String?
+  membership           Membership?              @relation(fields: [membershipId], references: [id])
+  date                 String
+  time                 String
+  participantsCount    Int
+  unitPriceCents       Int
+  totalCents           Int
+  quotaCost            Int
+  status               ReservationStatus        @default(WAITING_PAYMENT)
+  acceptedTermsVersion String
+  customerNotes        String?
+  participants         ReservationParticipant[]
+  payment              Payment?
+  cancellationRequests CancellationRequest[]
+  quotaTransactions    QuotaTransaction[]
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
 
   @@index([date])
   @@index([status])
+  @@index([membershipId])
 }
 
 model ReservationParticipant {
@@ -268,6 +296,85 @@ model CancellationRequest {
   reviewedAt    DateTime?
   createdAt     DateTime                  @default(now())
   updatedAt     DateTime                  @updatedAt
+}
+
+// Plano comercial do associado. Ex.: Mensal R$ 150 com 3 cotas por semana.
+model MembershipPlan {
+  id             String       @id @default(cuid())
+  name           String
+  slug           String       @unique
+  priceCents     Int
+  quotaAllowance Int
+  quotaPeriod    QuotaPeriod
+  active         Boolean      @default(true)
+  memberships    Membership[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+// Vínculo entre um Customer e um plano de associação.
+// É 1:1 com Customer nesta primeira versão.
+model Membership {
+  id                 String              @id @default(cuid())
+  customerId         String              @unique
+  customer           Customer            @relation(fields: [customerId], references: [id])
+  planId             String
+  plan               MembershipPlan      @relation(fields: [planId], references: [id])
+  status             MembershipStatus    @default(ACTIVE)
+  startedAt          DateTime            @default(now())
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  nextDueAt          DateTime
+  reservations       Reservation[]
+  quotaTransactions  QuotaTransaction[]
+  payments           MembershipPayment[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([planId])
+  @@index([status])
+  @@index([nextDueAt])
+}
+
+// Livro-caixa de cotas. O saldo é calculado pela soma de amount.
+// GRANT/REFUND normalmente positivos; DEBIT/EXPIRE normalmente negativos.
+model QuotaTransaction {
+  id             String               @id @default(cuid())
+  membershipId   String
+  membership     Membership           @relation(fields: [membershipId], references: [id], onDelete: Restrict)
+  reservationId  String?
+  reservation    Reservation?         @relation(fields: [reservationId], references: [id])
+  type           QuotaTransactionType
+  amount         Int
+  reason         String?
+  periodStart    DateTime?
+  periodEnd      DateTime?
+  idempotencyKey String?              @unique
+  createdAt      DateTime             @default(now())
+
+  @@index([membershipId, createdAt])
+  @@index([reservationId])
+}
+
+// Mensalidade/assinatura do associado. Mantida separada do Payment de reservas.
+model MembershipPayment {
+  id                String        @id @default(cuid())
+  membershipId      String
+  membership        Membership    @relation(fields: [membershipId], references: [id], onDelete: Restrict)
+  amountCents       Int
+  status            PaymentStatus @default(PENDING)
+  periodStart       DateTime
+  periodEnd         DateTime
+  dueAt             DateTime
+  paidAt            DateTime?
+  provider          String?
+  method            String?
+  providerPaymentId String?       @unique
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([membershipId, dueAt])
+  @@index([status])
 }
 
 model AuditLog {

@@ -1,10 +1,18 @@
 import type {
+  AdjustMembershipQuotaInput,
   AdminDashboardMode,
   AdminDashboardOverview,
+  AdminCustomer,
+  AdminMembershipDetail,
+  AdminMembershipListItem,
+  AdminMembershipPlan,
   AdminOverview,
   AdminPermission,
   AdminUser,
   Canoe,
+  CreateMembershipInput,
+  MembershipStatus,
+  UpdateMembershipInput,
   CreateCanoeInput,
   CreateExperienceInput,
   CreateScheduleSlotInput,
@@ -55,6 +63,62 @@ export const adminService = {
 
   listCanoes() {
     return apiRequest<Canoe[]>("/api/admin/canoes");
+  },
+
+  listCustomers() {
+    return apiRequest<AdminCustomer[]>("/api/admin/customers");
+  },
+
+  listMemberships() {
+    return apiRequest<AdminMembershipListItem[]>("/api/admin/memberships");
+  },
+
+  getMembership(id: string) {
+    return apiRequest<AdminMembershipDetail>(`/api/admin/memberships/${id}`);
+  },
+
+  listMembershipPlans() {
+    return apiRequest<AdminMembershipPlan[]>("/api/admin/membership-plans");
+  },
+
+  createMembership(input: CreateMembershipInput) {
+    return apiRequest<AdminMembershipDetail>("/api/admin/memberships", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  updateMembershipStatus(id: string, status: MembershipStatus) {
+    return apiRequest<AdminMembershipDetail>(`/api/admin/memberships/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  updateMembership(id: string, input: UpdateMembershipInput) {
+    return apiRequest<AdminMembershipDetail>(`/api/admin/memberships/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
+
+  deleteMembership(id: string) {
+    return apiRequest<MutationResult>(`/api/admin/memberships/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  adjustMembershipQuota(id: string, input: AdjustMembershipQuotaInput) {
+    return apiRequest<AdminMembershipDetail>(`/api/admin/memberships/${id}/quota`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  renewMembershipPeriods() {
+    return apiRequest<{ processed: number }>("/api/admin/memberships/renew", {
+      method: "POST",
+    });
   },
 
   createExperience(input: CreateExperienceInput) {
@@ -115,6 +179,12 @@ export const adminService = {
     return apiRequest<ScheduleSlot>(`/api/admin/schedule/${id}`, {
       method: "PATCH",
       body: JSON.stringify(input),
+    });
+  },
+
+  deleteScheduleSlot(id: string) {
+    return apiRequest<MutationResult>(`/api/admin/schedule/${id}`, {
+      method: "DELETE",
     });
   },
 

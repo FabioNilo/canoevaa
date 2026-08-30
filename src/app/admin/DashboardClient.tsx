@@ -74,8 +74,8 @@ export function AdminDashboardClient({ initialDashboard }: { initialDashboard: A
     <div>
       <PageHeader
         eyebrow="Dashboard"
-        title="Operacao diaria"
-        description="Acompanhe remadas, pendencias, vagas e receita calculadas pelo periodo selecionado."
+        title="Operação diaria"
+        description="Acompanhe remadas, pendências, vagas e receita calculadas pelo período selecionado."
         action={
           <div className="flex flex-col gap-2 sm:flex-row">
             <div className="inline-flex rounded-2xl border border-line bg-white p-1">
@@ -108,7 +108,7 @@ export function AdminDashboardClient({ initialDashboard }: { initialDashboard: A
       {loading ? (
         <p className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-line bg-white px-4 py-3 text-sm font-bold text-muted">
           <RefreshCw className="animate-spin" size={16} />
-          Atualizando periodo
+          Atualizando período
         </p>
       ) : null}
 
@@ -117,7 +117,7 @@ export function AdminDashboardClient({ initialDashboard }: { initialDashboard: A
           <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard icon={<Clock size={24} />} label="Aguardando confirmacao" value={dashboard.metrics.pendingReservations} />
             <MetricCard icon={<UsersRound size={24} />} label="Participantes confirmados" value={dashboard.metrics.confirmedParticipants} />
-            <MetricCard icon={<ShieldCheck size={24} />} label="Vagas disponiveis" value={dashboard.metrics.availableSpots} />
+            <MetricCard icon={<ShieldCheck size={24} />} label="Vagas disponíveis" value={dashboard.metrics.availableSpots} />
             <MetricCard icon={<WalletCards size={24} />} label="Receita do dia" value={centsToCurrency(dashboard.metrics.confirmedRevenueCents)} />
           </section>
 
@@ -126,7 +126,7 @@ export function AdminDashboardClient({ initialDashboard }: { initialDashboard: A
               <div>
                 <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-ocean">Remadas</p>
                 <h3 className="mt-1 font-display text-2xl font-bold text-deep">
-                  {selectedDay ? formatDateLabel(selectedDay.date) : "Periodo vazio"}
+                  {selectedDay ? formatDateLabel(selectedDay.date) : "Período vazio"}
                 </h3>
               </div>
               <StatusBadge tone="info">{selectedDay?.slots.length ?? 0} horario(s)</StatusBadge>
@@ -150,7 +150,7 @@ export function AdminDashboardClient({ initialDashboard }: { initialDashboard: A
                   </article>
                 ))
               ) : (
-                <EmptyState title="Nenhuma remada no periodo" description="A agenda ainda nao possui horarios para a data selecionada." />
+                <EmptyState title="Nenhuma remada no período" description="A agenda ainda não possui horários para a data selecionada." />
               )}
             </div>
           </section>
@@ -158,8 +158,8 @@ export function AdminDashboardClient({ initialDashboard }: { initialDashboard: A
           <section className="mt-8 rounded-[28px] border border-line bg-white p-5 deep-shadow sm:p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-ocean">Pendencias</p>
-                <h3 className="mt-1 font-display text-2xl font-bold text-deep">Reservas aguardando confirmacao</h3>
+                <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-ocean">Pendências</p>
+                <h3 className="mt-1 font-display text-2xl font-bold text-deep">Reservas aguardando confirmação</h3>
               </div>
               <CheckCircle2 className="text-turquoise" size={28} />
             </div>
@@ -179,7 +179,7 @@ export function AdminDashboardClient({ initialDashboard }: { initialDashboard: A
                   </article>
                 ))
               ) : (
-                <EmptyState title="Sem pendencias para esta data" description="Nao ha reservas aguardando confirmacao no periodo selecionado." />
+                <EmptyState title="Sem pendências para esta data" description="Não há reservas aguardando confirmação no período selecionado." />
               )}
             </div>
           </section>
@@ -218,7 +218,7 @@ export function AdminDashboardClient({ initialDashboard }: { initialDashboard: A
                     <p className="font-display text-lg font-bold text-ocean">{centsToCurrency(day.confirmedRevenueCents)}</p>
                   </div>
                   <p className="mt-3 text-xs font-semibold text-muted">
-                    {day.slots.length} horario(s) - {day.activeReservations} reserva(s) ativa(s)
+                    {day.slots.length} horário(s) - {day.activeReservations} reserva(s) ativa(s)
                   </p>
                 </article>
               ))}

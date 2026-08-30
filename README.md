@@ -1,42 +1,70 @@
-# ILHÉUS CANOE VA'A
+# Pontal Va'a
 
-MVP essencial em Next.js para catálogo de experiências, reserva, pagamento mock e admin mínimo de reservas + agenda.
+Aplicação web para apresentação, reserva e gestão de experiências de canoa em Ilhéus, Bahia.
+
+## Visão geral
+
+Este projeto foi desenvolvido para:
+
+- exibir experiências de passeios em mar e manguezal
+- divulgar os passeios com fotos, descrições e regras
+- permitir o fluxo de reserva do cliente
+- controlar agenda e disponibilidade
+- gerenciar canoas e experiências no painel administrativo
+- autenticar usuários do painel admin
 
 ## Stack
 
-- Next.js App Router
+- Next.js 16
+- React 19
 - TypeScript
 - Tailwind CSS
-- Prisma 7
+- Prisma
 - PostgreSQL
-- Auth.js com credenciais
+- Auth.js
 - Vitest
 - Playwright
 
-## Rodar local
+## Requisitos
+
+- Node.js 20+
+- npm
+- Docker (opcional, para rodar o banco localmente)
+- Git
+
+## Instalação
 
 ```bash
+git clone <url-do-repositorio>
+cd na-kai-canoa
 npm install
-npm run dev
 ```
 
-Abra `http://localhost:3000`.
+## Variáveis de ambiente
 
-Sem `DATABASE_URL`, as APIs usam mocks internos para manter o front navegável. Com banco configurado, os repositories passam a usar Prisma/PostgreSQL.
+Crie um arquivo `.env` com base no `.env.example`:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ilheus_canoe?schema=public"
+AUTH_SECRET="troque-por-um-segredo-grande-em-producao"
+NEXTAUTH_URL="http://localhost:3000"
+
+ADMIN_EMAIL="admin@ilheus.local"
+ADMIN_PASSWORD="admin123"
+
+PAYMENT_PROVIDER="mock"
+PAYMENT_WEBHOOK_SECRET="mock-webhook-secret"
+```
 
 ## Banco local
 
-O projeto inclui `compose.yml` para subir PostgreSQL local com Docker:
+### Com Docker
 
 ```bash
-docker compose up -d postgres
+docker compose up -d
 ```
 
-Depois:
-
-1. Copie `.env.example` para `.env`, se ainda não existir.
-2. Ajuste `DATABASE_URL`, se necessário.
-3. Rode:
+### Prisma
 
 ```bash
 npm run db:generate
@@ -44,56 +72,87 @@ npx prisma migrate deploy
 npm run db:seed
 ```
 
-Para conferir se o banco está atualizado:
+Para verificar o estado do banco:
 
 ```bash
 npx prisma migrate status
 ```
 
-Admin de desenvolvimento:
+## Rodar localmente
+
+```bash
+npm run dev
+```
+
+Acesse:
+
+- http://localhost:3000
+
+## Scripts principais
+
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run test
+npm run test:e2e
+```
+
+## Funcionalidades
+
+- catálogo público de experiências
+- detalhes por passeio
+- fluxo de reserva do cliente
+- página de confirmação de reserva
+- painel administrativo
+- criação e edição de passeios
+- cadastro e gestão de canoas
+- visualização da agenda
+- autenticação para admin
+
+## Estrutura principal
+
+```bash
+src/
+  app/
+  components/
+  domain/
+  lib/
+  server/
+  services/
+prisma/
+  schema.prisma
+  seed.ts
+```
+
+## Credenciais de testes
 
 ```txt
 admin@ilheus.local
 admin123
 ```
 
-## Fluxos principais
+## Deploy na Vercel
 
-- `/` catálogo público
-- `/experiencias/[slug]` detalhe com galeria
-- `/reserva` fluxo de reserva
-- `/reserva/confirmada` confirmação
-- `/associado/login` login administrativo
-- `/admin` reservas, agenda e permissões
+1. Envie o projeto para o GitHub.
+2. Conecte o repositório na Vercel.
+3. Configure as variáveis de ambiente:
+   - `DATABASE_URL`
+   - `AUTH_SECRET`
+   - `NEXTAUTH_URL`
+   - `ADMIN_EMAIL`
+   - `ADMIN_PASSWORD`
+   - `PAYMENT_PROVIDER`
+4. Escolha o framework `Next.js`.
+5. Faça o deploy.
 
-## Checklist de qualidade
+> Em produção, o banco deve estar em um provedor externo como Neon, Supabase, Railway, Render ou outro PostgreSQL gerenciado.
 
-Após cada etapa:
+## Status
 
-```bash
-npm run lint
-npm run test
-npm run build
-```
+Projeto em desenvolvimento com base funcional de MVP para gestão de experiências e reservas.
 
-Para E2E:
+## Licença
 
-```bash
-npm run test:e2e
-```
-
-## Ordem de implementação
-
-1. Corrigir base técnica e encoding.
-2. Adicionar Prisma/PostgreSQL.
-3. Modelar schema e seeds.
-4. Migrar experiências e galeria para banco.
-5. Migrar agenda/disponibilidade.
-6. Implementar reserva transacional.
-7. Implementar Auth.js e proteger admin/API.
-8. Implementar payment adapter mock.
-9. Implementar cancelamento configurável.
-10. Implementar admin reservas + agenda.
-11. Adicionar Vitest e testes de domínio/API.
-12. Adicionar Playwright e testes E2E.
-13. Preparar deploy e documentação.
+Este projeto é privado e destinado ao uso da marca e operação do negócio.

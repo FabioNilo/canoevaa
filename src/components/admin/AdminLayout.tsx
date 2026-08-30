@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, LayoutDashboard, UsersRound, WalletCards, Waves } from "lucide-react";
+import { ArrowLeft, BadgeCheck, LayoutDashboard, UsersRound, WalletCards, Waves } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentType, ReactNode } from "react";
@@ -15,6 +15,7 @@ const adminNavItems: AdminNavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/passeios", label: "Passeios", icon: Waves },
   { href: "/admin/participantes", label: "Participantes", icon: UsersRound },
+  { href: "/admin/associados", label: "Associados", icon: BadgeCheck },
   { href: "/admin/caixa", label: "Caixa", icon: WalletCards },
 ];
 
@@ -35,7 +36,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
               Voltar ao site
             </Link>
             <div className="mt-8">
-              <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-ocean">Administracao</p>
+              <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-ocean">Administração</p>
               <h1 className="mt-2 font-display text-2xl font-bold text-deep">Painel operacional</h1>
             </div>
             <nav className="mt-8 space-y-2" aria-label="Navegacao administrativa">

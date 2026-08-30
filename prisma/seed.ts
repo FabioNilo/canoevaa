@@ -184,6 +184,31 @@ async function main() {
       active: true,
     },
   });
+
+  const membershipPlans = [
+    { slug: "aloha", name: "Plano Aloha", priceCents: 15000, quotaAllowance: 3, quotaPeriod: "WEEKLY" as const },
+    { slug: "kai", name: "Plano Kai", priceCents: 24000, quotaAllowance: 6, quotaPeriod: "WEEKLY" as const },
+  ];
+
+  for (const plan of membershipPlans) {
+    await prisma.membershipPlan.upsert({
+      where: { slug: plan.slug },
+      update: {
+        name: plan.name,
+        priceCents: plan.priceCents,
+        quotaAllowance: plan.quotaAllowance,
+        quotaPeriod: plan.quotaPeriod,
+        active: true,
+      },
+      create: {
+        slug: plan.slug,
+        name: plan.name,
+        priceCents: plan.priceCents,
+        quotaAllowance: plan.quotaAllowance,
+        quotaPeriod: plan.quotaPeriod,
+      },
+    });
+  }
 }
 
 main()
