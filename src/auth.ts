@@ -35,8 +35,14 @@ export const authOptions: NextAuthOptions = {
             ? await bcrypt.compare(password, user.passwordHash)
             : false;
 
-          if (user?.active && user.role === "ADMIN" && passwordMatches) {
-            return { id: user.id, name: user.name, email: user.email, role: "admin" };
+          if (user?.active && passwordMatches) {
+            if (user.role === "ADMIN") {
+              return { id: user.id, name: user.name, email: user.email, role: "admin" };
+            }
+
+            if (user.role === "MEMBER") {
+              return { id: user.id, name: user.name, email: user.email, role: "member" };
+            }
           }
         }
 
@@ -59,7 +65,7 @@ export const authOptions: NextAuthOptions = {
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub ?? "";
-        session.user.role = token.role === "admin" ? "admin" : "public";
+        session.user.role = token.role === "admin" || token.role === "member" ? token.role : "public";
       }
 
       return session;

@@ -141,6 +141,7 @@ export type ReservationDraft = {
   date: string;
   time: string;
   participantsCount: number;
+  useMemberQuota?: boolean;
   customer: Customer;
   participants: Participant[];
   paymentMethod: PaymentMethod;
@@ -294,6 +295,8 @@ export type AdminMembershipDetail = AdminMembershipListItem & {
   customer: AdminMembershipCustomer;
   quotaMovements: AdminQuotaMovement[];
   payments: AdminMembershipPayment[];
+  memberLoginEmail?: string;
+  temporaryPassword?: string;
 };
 
 export type MembershipCustomerInput = {

@@ -4,7 +4,6 @@ import { CalendarDays, CheckCircle2, ShieldCheck, Waves } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ButtonLink } from "@/components/PrimaryButton";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { MockRoleGuard } from "@/components/MockRoleGuard";
 import { QuotaCard } from "@/components/QuotaCard";
 import { centsToCurrency } from "@/domain/rules";
 import type { MemberDashboard } from "@/domain/types";
@@ -44,8 +43,7 @@ export default function AssociadoPage() {
   }
 
   return (
-    <MockRoleGuard role="member">
-      <main className="min-h-screen bg-surface px-4 pb-28 pt-10 sm:px-6 md:pb-12 lg:px-8">
+    <main className="min-h-screen bg-surface px-4 pb-28 pt-10 sm:px-6 md:pb-12 lg:px-8">
       <div className="mx-auto max-w-5xl">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -53,7 +51,7 @@ export default function AssociadoPage() {
             <h1 className="mt-2 font-display text-5xl font-bold text-deep">Olá, {dashboard.member.name}</h1>
             <p className="mt-3 text-xl text-muted">Pronto para a próxima aventura?</p>
           </div>
-          <ButtonLink href="/reserva" className="hidden md:inline-flex">
+          <ButtonLink href="/associado/reservar" className="hidden md:inline-flex">
             <Waves size={18} />
             Usar cotas
           </ButtonLink>
@@ -113,7 +111,6 @@ export default function AssociadoPage() {
         </section>
       </div>
       <MobileBottomNav />
-      </main>
-    </MockRoleGuard>
+    </main>
   );
 }

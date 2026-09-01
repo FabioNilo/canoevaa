@@ -1,11 +1,21 @@
 "use client";
 
 import { ArrowLeft, Eye, KeyRound, Loader2, Mail } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { PrimaryButton } from "@/components/PrimaryButton";
+
+function getSafeNextPath() {
+  const next = new URLSearchParams(window.location.search).get("next");
+
+  if (!next?.startsWith("/") || next.startsWith("//")) {
+    return "/associado";
+  }
+
+  return next;
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("admin@ilheus.local");
@@ -22,7 +32,6 @@ export default function LoginPage() {
       email,
       password,
       redirect: false,
-      callbackUrl: "/admin",
     });
 
     setLoading(false);
@@ -32,7 +41,8 @@ export default function LoginPage() {
       return;
     }
 
-    window.location.href = response?.url ?? "/admin";
+    const session = await getSession();
+    window.location.href = session?.user.role === "admin" ? "/admin" : getSafeNextPath();
   }
 
   return (
@@ -52,7 +62,7 @@ export default function LoginPage() {
             className="mx-auto h-20 w-20 rounded-full object-cover"
           />
           <h1 className="mt-5 text-center font-display text-3xl font-bold text-deep">ILHÉUS CANOE VA&apos;A</h1>
-          <p className="mt-2 text-center text-muted">Área administrativa</p>
+          <p className="mt-2 text-center text-muted">Acesso administrativo e associado</p>
 
           <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
             <label className="block">

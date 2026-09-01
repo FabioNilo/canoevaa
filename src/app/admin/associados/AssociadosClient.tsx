@@ -121,7 +121,7 @@ function CustomerFields({
       <Field label="Telefone *">
         <input className={fieldClass} value={value.phone} onChange={(e) => onChange({ phone: e.target.value })} />
       </Field>
-      <Field label="E-mail">
+      <Field label="E-mail *">
         <input className={fieldClass} type="email" value={value.email} onChange={(e) => onChange({ email: e.target.value })} />
       </Field>
       <Field label="CPF">
@@ -265,8 +265,8 @@ export function AssociadosClient({
       setError("Selecione um cliente.");
       return;
     }
-    if (createMode === "new" && (createCustomer.name.trim().length < 2 || createCustomer.phone.trim().length < 8)) {
-      setError("Informe nome e telefone do novo associado.");
+    if (createMode === "new" && (createCustomer.name.trim().length < 2 || createCustomer.phone.trim().length < 8 || !createCustomer.email?.trim())) {
+      setError("Informe nome, telefone e e-mail do novo associado.");
       return;
     }
 
@@ -287,7 +287,11 @@ export function AssociadosClient({
       setShowCreate(false);
       setCreateForm({ customerId: "", planId: plans[0]?.id ?? "", startedAt: "" });
       setCreateCustomer(emptyCustomer());
-      setNotice(`Associacao criada para ${created.customerName}.`);
+      setNotice(
+        created.temporaryPassword
+          ? `Associacao criada para ${created.customerName}. Login: ${created.memberLoginEmail}. Senha temporaria: ${created.temporaryPassword}`
+          : `Associacao criada para ${created.customerName}.`,
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nao foi possivel criar a associacao.");
     } finally {

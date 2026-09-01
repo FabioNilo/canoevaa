@@ -4,7 +4,6 @@ import { CalendarDays, Clock, Plus, Waves } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ButtonLink } from "@/components/PrimaryButton";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { MockRoleGuard } from "@/components/MockRoleGuard";
 import type { MemberDashboard, Reservation } from "@/domain/types";
 import { memberService } from "@/services/member-service";
 
@@ -44,15 +43,14 @@ export default function ReservasPage() {
   }
 
   return (
-    <MockRoleGuard role="member">
-      <main className="min-h-screen bg-surface px-4 pb-28 pt-10 sm:px-6 md:pb-12 lg:px-8">
+    <main className="min-h-screen bg-surface px-4 pb-28 pt-10 sm:px-6 md:pb-12 lg:px-8">
       <div className="mx-auto max-w-5xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-ocean">Área do associado</p>
             <h1 className="mt-2 font-display text-4xl font-bold text-deep">Minhas reservas</h1>
           </div>
-          <ButtonLink href="/reserva" className="w-full sm:w-auto">
+          <ButtonLink href="/associado/reservar" className="w-full sm:w-auto">
             <Plus size={18} />
             Nova reserva
           </ButtonLink>
@@ -103,7 +101,6 @@ export default function ReservasPage() {
         )}
       </div>
       <MobileBottomNav />
-      </main>
-    </MockRoleGuard>
+    </main>
   );
 }

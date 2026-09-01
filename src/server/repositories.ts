@@ -14,6 +14,8 @@ import type {
   ApiError,
   ApiResponse,
   CreateMembershipInput,
+  MemberDashboard,
+  MemberStatus,
   MembershipCustomerInput,
   MembershipPaymentStatus,
   MembershipStatus,
@@ -32,6 +34,7 @@ import type {
   Participant,
   Payment,
   PaymentMethod,
+  QuotaMovement,
   Reservation,
   ReservationDraft,
   ReservationStatus,
@@ -62,6 +65,8 @@ import {
   ExperienceStatus as DbExperienceStatus,
   Prisma,
 } from "@prisma/client";
+import bcrypt from "bcryptjs";
+import { randomInt } from "crypto";
 import {
   activeTerm,
   adminMemberships,
@@ -220,6 +225,10 @@ type DbScheduleSlot = {
     status: string;
     participantsCount: number;
   }>;
+};
+
+type ReservationCreateContext = {
+  memberUserId?: string;
 };
 
 type DbCustomer = {
@@ -422,6 +431,29 @@ function normalizeStringList(items: string[]) {
 
 function normalizeIdentity(value: string) {
   return value.replace(/\s+/g, " ").trim().toUpperCase();
+}
+
+function normalizeEmail(value?: string | null) {
+  return value?.trim().toLowerCase() || null;
+}
+
+function buildTemporaryPassword(email: string) {
+  const prefix = email.split("@")[0]?.replace(/[^a-z0-9]/gi, "").slice(0, 12).toLowerCase() || "associado";
+  return `${prefix}@ICV${randomInt(1000, 10000)}`;
+}
+
+function mapMemberStatus(status: string): MemberStatus {
+  if (status === "PAST_DUE") return "overdue";
+  if (status === "SUSPENDED") return "suspended";
+  if (status === "CANCELLED") return "cancelled";
+  return "active";
+}
+
+function mapMemberQuotaMovementType(type: string): QuotaMovement["type"] {
+  if (type === "DEBIT" || type === "debit") return "reservation_use";
+  if (type === "REFUND" || type === "refund") return "cancellation_return";
+  if (type === "ADJUSTMENT" || type === "adjustment") return "manual_adjustment";
+  return "renewal";
 }
 
 function mapAdminCustomerReservation(reservation: Reservation): AdminCustomerReservation {
@@ -871,7 +903,7 @@ export const reservationRepository = {
     return ok(buildReservationQuote(experience, input.participantsCount), { source: prisma ? "postgres" : "mock" });
   },
 
-  async create(draft: ReservationDraft): Promise<ApiResponse<Reservation>> {
+  async create(draft: ReservationDraft, context: ReservationCreateContext = {}): Promise<ApiResponse<Reservation>> {
     const experience = await findExperienceBySlug(draft.experienceSlug);
 
     if (!experience) {
@@ -923,27 +955,33 @@ export const reservationRepository = {
     const customerRg = normalizeIdentity(draft.customer.rg);
 
     const created = await prisma.$transaction(async (tx) => {
-      const customer = await tx.customer.upsert({
-        where: { rg: customerRg },
-        update: {
-          name: draft.customer.fullName,
-          cpf: draft.customer.cpf?.trim() || null,
-          rg: customerRg,
-          birthDate: draft.customer.birthDate ? new Date(draft.customer.birthDate) : null,
-          phone: draft.customer.phone,
-          email: draft.customer.email?.trim() || null,
-          addressLine: draft.customer.address?.trim() || null,
-        },
-        create: {
-          name: draft.customer.fullName,
-          cpf: draft.customer.cpf?.trim() || null,
-          rg: customerRg,
-          birthDate: draft.customer.birthDate ? new Date(draft.customer.birthDate) : null,
-          phone: draft.customer.phone,
-          email: draft.customer.email?.trim() || null,
-          addressLine: draft.customer.address?.trim() || null,
-        },
-      });
+      const customer = context.memberUserId
+        ? await tx.customer.findUnique({ where: { userId: context.memberUserId } })
+        : await tx.customer.upsert({
+            where: { rg: customerRg },
+            update: {
+              name: draft.customer.fullName,
+              cpf: draft.customer.cpf?.trim() || null,
+              rg: customerRg,
+              birthDate: draft.customer.birthDate ? new Date(draft.customer.birthDate) : null,
+              phone: draft.customer.phone,
+              email: draft.customer.email?.trim() || null,
+              addressLine: draft.customer.address?.trim() || null,
+            },
+            create: {
+              name: draft.customer.fullName,
+              cpf: draft.customer.cpf?.trim() || null,
+              rg: customerRg,
+              birthDate: draft.customer.birthDate ? new Date(draft.customer.birthDate) : null,
+              phone: draft.customer.phone,
+              email: draft.customer.email?.trim() || null,
+              addressLine: draft.customer.address?.trim() || null,
+            },
+          });
+
+      if (!customer) {
+        throw new Error("MEMBER_CUSTOMER_NOT_FOUND");
+      }
 
       const existingReservation = await tx.reservation.findFirst({
         where: {
@@ -958,15 +996,25 @@ export const reservationRepository = {
       }
 
       const quotaCost = validation.quote.quotaCost;
-      const activeMembership = await tx.membership.findFirst({
-        where: { customerId: customer.id, status: "ACTIVE" },
-        include: { quotaTransactions: { select: { amount: true } } },
-      });
+      const activeMembership = context.memberUserId
+        ? await tx.membership.findFirst({
+            where: { customerId: customer.id, status: "ACTIVE" },
+            include: { quotaTransactions: { select: { amount: true } } },
+          })
+        : null;
       const quotaBalance = activeMembership
         ? activeMembership.quotaTransactions.reduce((total, movement) => total + movement.amount, 0)
         : 0;
-      const membershipForQuota =
-        activeMembership && quotaCost > 0 && quotaBalance >= quotaCost ? activeMembership : null;
+
+      if (context.memberUserId && !activeMembership) {
+        throw new Error("MEMBER_ACTIVE_MEMBERSHIP_NOT_FOUND");
+      }
+
+      if (context.memberUserId && quotaCost > quotaBalance) {
+        throw new Error("MEMBER_QUOTA_INSUFFICIENT");
+      }
+
+      const membershipForQuota = context.memberUserId ? activeMembership : null;
 
       const booking = await tx.scheduleSlot.updateMany({
         where: {
@@ -1073,6 +1121,18 @@ export const reservationRepository = {
 
       if (message.includes("vagas suficientes")) {
         return fail("SLOT_FULL", message, "time");
+      }
+
+      if (message === "MEMBER_CUSTOMER_NOT_FOUND") {
+        return fail("MEMBER_NOT_FOUND", "Associado nao encontrado para este login.");
+      }
+
+      if (message === "MEMBER_ACTIVE_MEMBERSHIP_NOT_FOUND") {
+        return fail("MEMBERSHIP_NOT_FOUND", "Este login ainda nao possui associacao ativa.");
+      }
+
+      if (message === "MEMBER_QUOTA_INSUFFICIENT") {
+        return fail("INSUFFICIENT_QUOTA", "Saldo de cotas insuficiente para este passeio.");
       }
 
       return fail("RESERVATION_CREATE_FAILED", "Nao foi possivel criar a reserva.");
@@ -1235,12 +1295,53 @@ function createMockReservation(
 }
 
 export const memberRepository = {
-  async dashboard() {
-    return ok(memberDashboard, { source: "mock", role: "member" });
+  async dashboard(userId: string): Promise<ApiResponse<MemberDashboard>> {
+    if (!prisma) {
+      return ok(memberDashboard, { source: "mock", role: "member" });
+    }
+
+    if (!userId) {
+      return fail("UNAUTHORIZED", "Acesso de associado restrito.");
+    }
+
+    const customer = await loadMemberCustomer(userId);
+
+    if (!customer) {
+      return fail("MEMBER_NOT_FOUND", "Associado nao encontrado para este login.");
+    }
+
+    if (!customer.membership) {
+      return fail("MEMBERSHIP_NOT_FOUND", "Este login ainda nao possui associacao ativa.");
+    }
+
+    return ok(buildMemberDashboard(customer), { source: "postgres", role: "member" });
   },
 
-  async reservations() {
-    return ok(reservations, { source: "mock", role: "member" });
+  async reservations(userId: string): Promise<ApiResponse<Reservation[]>> {
+    if (!prisma) {
+      return ok(reservations, { source: "mock", role: "member" });
+    }
+
+    if (!userId) {
+      return fail("UNAUTHORIZED", "Acesso de associado restrito.");
+    }
+
+    const customer = await prisma.customer.findUnique({
+      where: { userId },
+      select: {
+        id: true,
+        reservations: {
+          orderBy: { createdAt: "desc" },
+          include: { experience: true, customer: true, participants: true, payment: true },
+        },
+      },
+    });
+
+    if (!customer) {
+      return fail("MEMBER_NOT_FOUND", "Associado nao encontrado para este login.");
+    }
+
+    return ok(customer.reservations.map(mapReservation), { source: "postgres", role: "member" });
   },
 };
 
@@ -2377,6 +2478,69 @@ function validateMembershipCustomer(input: Partial<MembershipCustomerInput>, req
   return null;
 }
 
+async function ensureMemberUserForCustomer(tx: Prisma.TransactionClient, customerId: string) {
+  const customer = await tx.customer.findUnique({
+    where: { id: customerId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      userId: true,
+      user: { select: { id: true, email: true } },
+    },
+  });
+
+  if (!customer) {
+    throw new Error("CUSTOMER_NOT_FOUND");
+  }
+
+  const email = normalizeEmail(customer.email);
+
+  if (!email) {
+    throw new Error("CUSTOMER_EMAIL_REQUIRED");
+  }
+
+  if (customer.userId) {
+    return { email: customer.user?.email ?? email };
+  }
+
+  const existingUser = await tx.user.findUnique({
+    where: { email },
+    select: { id: true, role: true, member: { select: { id: true } } },
+  });
+
+  if (existingUser) {
+    if (existingUser.role !== "MEMBER" || (existingUser.member && existingUser.member.id !== customerId)) {
+      throw new Error("MEMBER_EMAIL_IN_USE");
+    }
+
+    await tx.customer.update({
+      where: { id: customerId },
+      data: { userId: existingUser.id },
+    });
+
+    return { email };
+  }
+
+  const temporaryPassword = buildTemporaryPassword(email);
+  const user = await tx.user.create({
+    data: {
+      name: customer.name,
+      email,
+      role: "MEMBER",
+      active: true,
+      passwordHash: await bcrypt.hash(temporaryPassword, 12),
+    },
+  });
+
+  await tx.customer.update({
+    where: { id: customerId },
+    data: { userId: user.id },
+  });
+
+  return { email, temporaryPassword };
+}
+
 type MembershipDetailRow = Prisma.MembershipGetPayload<{ include: typeof membershipDetailInclude }>;
 
 function buildMembershipDetail(row: MembershipDetailRow): AdminMembershipDetail {
@@ -2437,6 +2601,80 @@ function buildMembershipDetail(row: MembershipDetailRow): AdminMembershipDetail 
       dueAt: payment.dueAt.toISOString(),
       paidAt: payment.paidAt?.toISOString(),
     })),
+  };
+}
+
+const memberCustomerInclude = {
+  membership: { include: membershipDetailInclude },
+  reservations: {
+    orderBy: { createdAt: "desc" as const },
+    include: { experience: true, customer: true, participants: true, payment: true },
+  },
+} satisfies Prisma.CustomerInclude;
+
+type MemberCustomerRow = Prisma.CustomerGetPayload<{ include: typeof memberCustomerInclude }>;
+
+async function loadMemberCustomer(userId: string): Promise<MemberCustomerRow | null> {
+  if (!prisma) return null;
+
+  return prisma.customer.findUnique({
+    where: { userId },
+    include: memberCustomerInclude,
+  });
+}
+
+function buildMemberDashboard(customer: MemberCustomerRow): MemberDashboard {
+  const membership = customer.membership;
+
+  if (!membership) {
+    throw new Error("MEMBERSHIP_NOT_FOUND");
+  }
+
+  const detail = buildMembershipDetail(membership);
+  const customerReservations = customer.reservations.map(mapReservation);
+  const today = dateToInputValue(new Date());
+  const nextReservation = customerReservations
+    .filter((reservation) => reservation.date >= today && ["waiting_payment", "confirmed"].includes(reservation.status))
+    .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))[0] ?? null;
+
+  let runningBalance = 0;
+  const quotaMovements = [...detail.quotaMovements]
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .map((movement): QuotaMovement => {
+      const previousBalance = runningBalance;
+      runningBalance += movement.amount;
+
+      return {
+        id: movement.id,
+        date: movement.createdAt.slice(0, 10),
+        type: mapMemberQuotaMovementType(movement.type),
+        quantity: movement.amount,
+        reservationCode: movement.reservationCode,
+        previousBalance,
+        nextBalance: runningBalance,
+        description: movement.reason ?? "Movimentacao de cotas",
+      };
+    })
+    .reverse();
+
+  return {
+    member: {
+      id: customer.id,
+      name: customer.name,
+      status: mapMemberStatus(membership.status),
+      invoiceDueDate: detail.nextDueAt.slice(0, 10),
+      nextRenewalLabel: detail.currentPeriodEnd.slice(0, 10),
+    },
+    plan: {
+      id: detail.plan.id,
+      name: detail.plan.name,
+      monthlyPriceCents: detail.plan.priceCents,
+      weeklyQuota: detail.plan.quotaAllowance,
+      quotasAccumulate: false,
+    },
+    quotasAvailable: detail.quotaBalance,
+    quotaMovements,
+    nextReservation,
   };
 }
 
@@ -2573,6 +2811,9 @@ export const membershipRepository = {
     if (input.customer) {
       const invalid = validateMembershipCustomer(input.customer, true);
       if (invalid) return { data: null, error: invalid };
+      if (!normalizeEmail(input.customer.email)) {
+        return fail("CUSTOMER_EMAIL_REQUIRED", "Informe um e-mail para criar o acesso do associado.", "customer.email");
+      }
     }
 
     if (!prisma) {
@@ -2583,6 +2824,7 @@ export const membershipRepository = {
       }
 
       const customerId = input.customerId ?? `customer_${Date.now()}`;
+      const temporaryPassword = input.customer?.email ? buildTemporaryPassword(input.customer.email) : undefined;
       const period = currentPeriod(startedAt, plan.quotaPeriod, now);
       const created: AdminMembershipDetail = {
         id: `membership_${Date.now()}`,
@@ -2631,6 +2873,8 @@ export const membershipRepository = {
             dueAt: startedAt.toISOString(),
           },
         ],
+        memberLoginEmail: input.customer?.email?.trim().toLowerCase() || undefined,
+        temporaryPassword,
       };
       adminMemberships.unshift(created);
       return ok(created, { source: "mock", role: "admin" });
@@ -2641,10 +2885,13 @@ export const membershipRepository = {
 
     if (input.customerId) {
       const [customerExists, existing] = await Promise.all([
-        prisma.customer.findUnique({ where: { id: input.customerId }, select: { id: true } }),
+        prisma.customer.findUnique({ where: { id: input.customerId }, select: { id: true, email: true } }),
         prisma.membership.findUnique({ where: { customerId: input.customerId }, select: { id: true } }),
       ]);
       if (!customerExists) return fail("CUSTOMER_NOT_FOUND", "Cliente nao encontrado.", "customerId");
+      if (!normalizeEmail(customerExists.email)) {
+        return fail("CUSTOMER_EMAIL_REQUIRED", "Informe um e-mail no cadastro do cliente antes de criar o acesso do associado.", "customerId");
+      }
       if (existing) return fail("MEMBERSHIP_EXISTS", "Este cliente ja possui uma associacao.", "customerId");
     }
 
@@ -2662,6 +2909,7 @@ export const membershipRepository = {
       const customerId = input.customerId
         ? input.customerId
         : (await tx.customer.create({ data: membershipCustomerCreateData(input.customer as MembershipCustomerInput) })).id;
+      const memberCredentials = await ensureMemberUserForCustomer(tx, customerId);
 
       const record = await tx.membership.create({
         data: {
@@ -2698,19 +2946,45 @@ export const membershipRepository = {
         },
       });
 
-      return record;
-    });
+      return { record, memberCredentials };
+    }).catch((error: Error) => error);
+
+    if (membership instanceof Error) {
+      if (membership.message === "CUSTOMER_EMAIL_REQUIRED") {
+        return fail("CUSTOMER_EMAIL_REQUIRED", "Informe um e-mail para criar o acesso do associado.", "customer.email");
+      }
+
+      if (membership.message === "MEMBER_EMAIL_IN_USE") {
+        return fail("MEMBER_EMAIL_IN_USE", "Este e-mail ja esta vinculado a outro acesso.", "customer.email");
+      }
+
+      if (isUniqueConstraintError(membership)) {
+        return fail("MEMBERSHIP_EXISTS", "Este cliente ja possui uma associacao.", "customerId");
+      }
+
+      return fail("MEMBERSHIP_CREATE_FAILED", "Nao foi possivel criar a associacao.");
+    }
 
     await prisma.auditLog.create({
       data: {
         action: "membership.created",
         entityType: "Membership",
-        entityId: membership.id,
-        metadata: { planId: plan.id, manualCustomer: hasNewCustomer },
+        entityId: membership.record.id,
+        metadata: { planId: plan.id, manualCustomer: hasNewCustomer, memberLoginEmail: membership.memberCredentials.email },
       },
     });
 
-    return loadMembershipDetail(membership.id);
+    const detail = await loadMembershipDetail(membership.record.id);
+    return detail.data
+      ? ok(
+          {
+            ...detail.data,
+            memberLoginEmail: membership.memberCredentials.email,
+            temporaryPassword: membership.memberCredentials.temporaryPassword,
+          },
+          detail.meta,
+        )
+      : detail;
   },
 
   async update(id: string, input: UpdateMembershipInput): Promise<ApiResponse<AdminMembershipDetail>> {

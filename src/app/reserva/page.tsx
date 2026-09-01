@@ -85,7 +85,11 @@ const paymentOptions: Array<{ id: PaymentMethod; title: string; detail: string; 
   { id: "in_person", title: "Presencial", detail: "Pagamento combinado com a equipe", icon: WalletCards },
 ];
 
-export default function ReservaPage() {
+type ReservaPageProps = {
+  memberMode?: boolean;
+};
+
+export default function ReservaPage({ memberMode = false }: ReservaPageProps) {
   const router = useRouter();
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([]);
@@ -275,6 +279,7 @@ export default function ReservaPage() {
         date: selectedSlot.date,
         time: selectedSlot.time,
         participantsCount: 1,
+        useMemberQuota: memberMode,
         customer,
         participants: buildParticipants(),
         paymentMethod,
@@ -319,8 +324,8 @@ export default function ReservaPage() {
       "
     >
       <Link
-        href="/"
-        aria-label="Voltar para o site"
+        href={memberMode ? "/associado" : "/"}
+        aria-label={memberMode ? "Voltar para area do associado" : "Voltar para o site"}
         className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-deep"
       >
         <ArrowLeft size={15} />

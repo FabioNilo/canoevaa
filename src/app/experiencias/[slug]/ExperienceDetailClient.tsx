@@ -1,11 +1,50 @@
 "use client";
 
-import { ArrowLeft, Clock, MapPin, ShieldCheck, UsersRound, Waves } from "lucide-react";
+import { ArrowLeft, Clock, HelpCircle, MapPin, MessageCircle, Phone, ShieldCheck, UsersRound, Waves } from "lucide-react";
 import Link from "next/link";
 import { ExperienceCarousel } from "@/components/ExperienceCarousel";
 import { ButtonLink } from "@/components/PrimaryButton";
 import { centsToCurrency, getExperienceBookingPolicy } from "@/domain/rules";
 import type { Experience } from "@/domain/types";
+
+const whatsappNumber = "5573991569375";
+const whatsappDisplay = "(73) 99156-9375";
+
+function buildWhatsAppUrl(experienceName: string) {
+  const message = encodeURIComponent(`Ola, tenho uma duvida sobre o passeio ${experienceName}.`);
+  return `https://wa.me/${whatsappNumber}?text=${message}`;
+}
+
+function buildFaqs(experience: Experience, canReserveOnline: boolean) {
+  return [
+    {
+      question: "Preciso saber nadar?",
+      answer:
+        "Nao e obrigatorio saber nadar. A equipe orienta o grupo antes da saida e o uso de colete salva-vidas faz parte da experiencia.",
+    },
+    {
+      question: "O que devo levar?",
+      answer:
+        "Recomendamos roupa leve, protetor solar, garrafa de agua, sandalia ou calcado que possa molhar e uma muda seca para depois do passeio.",
+    },
+    {
+      question: `Como funciona a reserva para ${experience.name}?`,
+      answer: canReserveOnline
+        ? "A reserva pode ser feita pelo site nos horarios disponiveis. Depois da confirmacao, a equipe acompanha o pagamento e os detalhes operacionais."
+        : "Esse passeio funciona sob consulta. Fale com a equipe pelo WhatsApp para confirmar disponibilidade, rota e condicoes da saida.",
+    },
+    {
+      question: "Associados podem usar cotas?",
+      answer:
+        "Sim. Associados devem entrar pela area do associado para criar a reserva com saldo de cotas. Reservas feitas pela area publica seguem o fluxo normal de pagamento.",
+    },
+    {
+      question: "O que acontece se o clima nao ajudar?",
+      answer:
+        "A saida depende de condicoes seguras de vento, mar e visibilidade. Quando necessario, a equipe orienta remarcacao ou proximo passo pelo canal de atendimento.",
+    },
+  ];
+}
 
 export default function ExperienceDetailClient({
   initialExperience,
@@ -20,6 +59,8 @@ export default function ExperienceDetailClient({
 
   const experience = initialExperience;
   const bookingPolicy = getExperienceBookingPolicy(experience);
+  const faqs = buildFaqs(experience, bookingPolicy.canReserveOnline);
+  const whatsappUrl = buildWhatsAppUrl(experience.name);
 
   return (
     <main className="min-h-screen bg-surface pb-12">
@@ -104,7 +145,47 @@ export default function ExperienceDetailClient({
               <p className="mt-1">{bookingPolicy.reason}</p>
             </div>
           )}
+          <Link
+            href="#duvidas-frequentes"
+            className="mt-3 flex min-h-12 items-center justify-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-bold text-deep transition hover:border-turquoise hover:text-ocean"
+          >
+            <Phone size={17} />
+            WhatsApp {whatsappDisplay}
+          </Link>
         </aside>
+      </section>
+
+      <section id="duvidas-frequentes" className="mx-auto max-w-4xl scroll-mt-24 px-4 pb-12">
+        <div className="grid gap-6 md:grid-cols-[0.75fr_1.25fr]">
+          <div>
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-ocean">Atendimento</p>
+            <h2 className="mt-2 font-display text-3xl font-bold text-deep">Duvidas frequentes</h2>
+            <p className="mt-3 leading-7 text-muted">
+              Veja as respostas principais e fale com a equipe se precisar alinhar algum detalhe antes da sua remada.
+            </p>
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-5 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-deep px-5 text-sm font-bold text-white transition hover:bg-ocean"
+            >
+              <MessageCircle size={18} />
+              Chamar no WhatsApp
+            </a>
+          </div>
+
+          <div className="space-y-3">
+            {faqs.map((faq) => (
+              <details key={faq.question} className="group rounded-2xl border border-line bg-white p-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-xl font-bold text-deep">
+                  <span>{faq.question}</span>
+                  <HelpCircle size={21} className="shrink-0 text-ocean transition group-open:rotate-45" />
+                </summary>
+                <p className="mt-3 leading-7 text-muted">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
       </section>
     </main>
   );

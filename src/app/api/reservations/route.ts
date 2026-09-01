@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { reservationRepository } from "@/server/repositories";
+import { getCurrentSessionUser } from "@/server/session";
 
 const participantSchema = z.object({
   id: z.string().min(1),
@@ -16,6 +17,7 @@ const reservationSchema = z.object({
   date: z.string().min(10),
   time: z.string().min(4),
   participantsCount: z.literal(1),
+  useMemberQuota: z.boolean().optional(),
   customer: z.object({
     fullName: z.string().min(2),
     rg: z.string().min(3),
@@ -48,7 +50,24 @@ export async function POST(request: Request) {
     );
   }
 
-  const response = await reservationRepository.create(parsed.data);
+  const user = await getCurrentSessionUser();
+
+  if (parsed.data.useMemberQuota && user?.role !== "member") {
+    return NextResponse.json(
+      {
+        data: null,
+        error: {
+          code: "UNAUTHORIZED",
+          message: "Entre como associado para usar suas cotas.",
+        },
+      },
+      { status: 401 },
+    );
+  }
+
+  const response = await reservationRepository.create(parsed.data, {
+    memberUserId: parsed.data.useMemberQuota && user?.role === "member" ? user.id : undefined,
+  });
 
   return NextResponse.json(response, { status: response.error ? 400 : 201 });
 }
